@@ -1,0 +1,8 @@
+DROP TABLE IF EXISTS sensitive_patterns;
+DROP TABLE IF EXISTS column_top_values;
+DROP TABLE IF EXISTS column_stats;
+DROP TABLE IF EXISTS columns;
+DROP TABLE IF EXISTS datasets;
+DROP TABLE IF EXISTS run_sources;
+DROP TABLE IF EXISTS runs;
+DROP TABLE IF EXISTS sources;
