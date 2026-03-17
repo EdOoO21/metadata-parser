@@ -1,0 +1,13 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: demo_api
+    kind: rest
+    config:
+      base_url: http://localhost:8080
+      discovery:
+        mode: manual
+        openapi_url: http://localhost:8080/openapi.json

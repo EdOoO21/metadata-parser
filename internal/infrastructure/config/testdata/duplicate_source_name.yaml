@@ -1,0 +1,15 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: same_source
+    kind: files
+    config:
+      path: ./demo/files
+
+  - name: same_source
+    kind: postgres
+    config:
+      dsn_env: DEMO_PG_DSN

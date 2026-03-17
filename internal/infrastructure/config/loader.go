@@ -34,51 +34,51 @@ func (l *Loader) Load(path string) (*dto.AppConfig, error) {
 
 func validateConfig(cfg *dto.AppConfig) error {
 	if cfg.Version != 1 {
-		return fmt.Errorf("unsupported config version: %d", cfg.Version)
+		return fmt.Errorf("неподдерживаемая версия конфига: %d", cfg.Version)
 	}
 	if cfg.Catalog.DSNEnv == "" {
-		return fmt.Errorf("catalog.dsn_env is required")
+		return fmt.Errorf("поле catalog.dsn_env обязательно")
 	}
 	if len(cfg.Sources) == 0 {
-		return fmt.Errorf("at least one source is required")
+		return fmt.Errorf("нужно указать хотя бы один источник")
 	}
 
 	seen := make(map[string]struct{}, len(cfg.Sources))
 	for i, src := range cfg.Sources {
 		if src.Name == "" {
-			return fmt.Errorf("sources[%d].name is required", i)
+			return fmt.Errorf("поле sources[%d].name обязательно", i)
 		}
 		if _, ok := seen[src.Name]; ok {
-			return fmt.Errorf("duplicate source name: %s", src.Name)
+			return fmt.Errorf("дублирующееся имя источника: %s", src.Name)
 		}
 		seen[src.Name] = struct{}{}
 		if src.Kind == "" {
-			return fmt.Errorf("sources[%d].kind is required", i)
+			return fmt.Errorf("поле sources[%d].kind обязательно", i)
 		}
 		switch src.Kind {
 		case "postgres":
 			if src.Config.DSNEnv == "" {
-				return fmt.Errorf("sources[%d].config.dsn_env is required for postgres", i)
+				return fmt.Errorf("поле sources[%d].config.dsn_env обязательно для postgres", i)
 			}
 		case "files":
 			if src.Config.Path == "" {
-				return fmt.Errorf("sources[%d].config.path is required for files", i)
+				return fmt.Errorf("поле sources[%d].config.path обязательно для files", i)
 			}
 		case "rest":
 			if src.Config.BaseURL == "" {
-				return fmt.Errorf("sources[%d].config.base_url is required for rest", i)
+				return fmt.Errorf("поле sources[%d].config.base_url обязательно для rest", i)
 			}
 			if src.Config.Discovery == nil {
-				return fmt.Errorf("sources[%d].config.discovery is required for rest", i)
+				return fmt.Errorf("поле sources[%d].config.discovery обязательно для rest", i)
 			}
 			if src.Config.Discovery.Mode != "openapi" {
-				return fmt.Errorf("sources[%d].config.discovery.mode must be openapi", i)
+				return fmt.Errorf("поле sources[%d].config.discovery.mode должно быть равно openapi", i)
 			}
 			if src.Config.Discovery.OpenAPIURL == "" {
-				return fmt.Errorf("sources[%d].config.discovery.openapi_url is required for rest", i)
+				return fmt.Errorf("поле sources[%d].config.discovery.openapi_url обязательно для rest", i)
 			}
 		default:
-			return fmt.Errorf("unsupported source kind: %s", src.Kind)
+			return fmt.Errorf("неподдерживаемый тип источника: %s", src.Kind)
 		}
 	}
 	return nil
