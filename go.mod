@@ -1,4 +1,4 @@
-module catalog-tool
+module github.com/EdOoO21/metadata-parser
 
 go 1.23.2
 

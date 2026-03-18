@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"catalog-tool/internal/domain/types"
+	"github.com/EdOoO21/metadata-parser/internal/domain/types"
 )
 
 type Dataset struct {

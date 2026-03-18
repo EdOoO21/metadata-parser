@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"catalog-tool/internal/application/ports"
-	"catalog-tool/internal/domain/model"
-	"catalog-tool/internal/domain/types"
+	"github.com/EdOoO21/metadata-parser/internal/application/ports"
+	"github.com/EdOoO21/metadata-parser/internal/domain/model"
+	"github.com/EdOoO21/metadata-parser/internal/domain/types"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"

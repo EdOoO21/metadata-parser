@@ -1,6 +1,6 @@
 package model
 
-import "catalog-tool/internal/domain/types"
+import "github.com/EdOoO21/metadata-parser/internal/domain/types"
 
 type Column struct {
 	ID              int64

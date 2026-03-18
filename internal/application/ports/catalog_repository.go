@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"catalog-tool/internal/domain/model"
-	"catalog-tool/internal/domain/types"
+	"github.com/EdOoO21/metadata-parser/internal/domain/model"
+	"github.com/EdOoO21/metadata-parser/internal/domain/types"
 )
 
 type CatalogRepository interface {

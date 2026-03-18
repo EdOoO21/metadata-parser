@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"catalog-tool/internal/infrastructure/cli"
+	"github.com/EdOoO21/metadata-parser/internal/infrastructure/cli"
 )
 
 func main() {

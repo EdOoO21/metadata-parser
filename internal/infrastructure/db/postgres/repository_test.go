@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"catalog-tool/internal/domain/model"
-	"catalog-tool/internal/domain/types"
+	"github.com/EdOoO21/metadata-parser/internal/domain/model"
+	"github.com/EdOoO21/metadata-parser/internal/domain/types"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"

@@ -17,7 +17,7 @@ build:
 	go build -o bin/$(APP_NAME) ./cmd/catalog
 
 test:
-	go test ./... -d
+	go test ./...
 cover:
 	go test -cover -coverprofile=coverage.out ./...
 
