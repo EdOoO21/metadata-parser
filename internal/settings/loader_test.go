@@ -1,4 +1,4 @@
-package config
+package settings
 
 import (
 	"path/filepath"
@@ -33,5 +33,13 @@ func TestLoaderLoad_InvalidRestDiscovery(t *testing.T) {
 	_, err := loader.Load(filepath.Join("testdata", "invalid_rest_discovery.yaml"))
 	if err == nil {
 		t.Fatal("expected invalid rest discovery validation error, got nil")
+	}
+}
+
+func TestLoaderLoad_InvalidFilesDepth(t *testing.T) {
+	loader := NewLoader()
+	_, err := loader.Load(filepath.Join("testdata", "invalid_files_depth.yaml"))
+	if err == nil {
+		t.Fatal("expected invalid files max_depth validation error, got nil")
 	}
 }

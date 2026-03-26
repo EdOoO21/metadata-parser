@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewReportCmd() *cobra.Command {
+func NewReportCmd(reportCatalogUseCase ReportCatalogUseCase) *cobra.Command {
 	var latest bool
 	var runID int64
 
@@ -18,7 +18,19 @@ func NewReportCmd() *cobra.Command {
 		Example: `  catalog report --latest
   catalog report --run-id 42`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Fprintf(cmd.OutOrStdout(), "report command received: latest=%t run-id=%d\n", latest, runID)
+			if reportCatalogUseCase == nil {
+				return fmt.Errorf("report catalog use case is not configured")
+			}
+			if err := validateReportSelection(latest, runID); err != nil {
+				return err
+			}
+
+			message, err := reportCatalogUseCase.Execute(cmd.Context(), runID)
+			if err != nil {
+				return err
+			}
+
+			fmt.Fprintln(cmd.OutOrStdout(), message)
 			return nil
 		},
 	}
@@ -27,4 +39,14 @@ func NewReportCmd() *cobra.Command {
 	cmd.Flags().Int64Var(&runID, "run-id", 0, "Идентификатор запуска")
 
 	return cmd
+}
+
+func validateReportSelection(latest bool, runID int64) error {
+	if latest {
+		panic("report latest selector is not implemented yet")
+	}
+	if runID <= 0 {
+		return fmt.Errorf("flag --run-id is required")
+	}
+	return nil
 }

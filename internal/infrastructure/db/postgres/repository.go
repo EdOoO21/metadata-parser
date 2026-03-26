@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/EdOoO21/metadata-parser/internal/application/ports"
+	appports "github.com/EdOoO21/metadata-parser/internal/application/ports"
 	"github.com/EdOoO21/metadata-parser/internal/domain/model"
 	"github.com/EdOoO21/metadata-parser/internal/domain/types"
 
@@ -25,7 +25,7 @@ type Repository struct {
 	db   dbtx
 }
 
-var _ ports.CatalogRepository = (*Repository)(nil)
+var _ appports.CatalogRepository = (*Repository)(nil)
 
 func NewRepository(pool *pgxpool.Pool) *Repository {
 	return &Repository{
@@ -41,7 +41,7 @@ func newRepositoryWithDB(pool *pgxpool.Pool, db dbtx) *Repository {
 	}
 }
 
-func (r *Repository) WithTx(ctx context.Context, fn func(repo ports.CatalogRepository) error) error {
+func (r *Repository) WithTx(ctx context.Context, fn func(repo appports.CatalogRepository) error) error {
 	tx, err := r.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)

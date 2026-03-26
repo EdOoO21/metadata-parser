@@ -82,7 +82,7 @@ make test
 Файл `demo/config/demo.yaml` описывает:
 - каталог PostgreSQL через `CATALOG_DSN`
 - исходный PostgreSQL-источник через `DEMO_PG_DSN`
-- файловый источник через путь `./demo/files`
+- файловый источник через путь `./demo/files` с глубиной обхода `max_depth`
 - REST API через `base_url` и OpenAPI discovery
 
 ## Следующий этап

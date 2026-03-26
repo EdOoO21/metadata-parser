@@ -1,8 +1,8 @@
-package dto
+package settings
 
 type AppConfig struct {
-	Version int           `yaml:"version"`
-	Catalog CatalogConfig `yaml:"catalog"`
+	Version int            `yaml:"version"`
+	Catalog CatalogConfig  `yaml:"catalog"`
 	Sources []SourceConfig `yaml:"sources"`
 }
 
@@ -11,14 +11,15 @@ type CatalogConfig struct {
 }
 
 type SourceConfig struct {
-	Name   string      `yaml:"name"`
-	Kind   string      `yaml:"kind"`
-	Config SourceInner `yaml:"config"`
+	Name   string              `yaml:"name"`
+	Kind   string              `yaml:"kind"`
+	Config SourceConfigDetails `yaml:"config"`
 }
 
-type SourceInner struct {
+type SourceConfigDetails struct {
 	DSNEnv    string           `yaml:"dsn_env,omitempty"`
 	Path      string           `yaml:"path,omitempty"`
+	MaxDepth  int              `yaml:"max_depth,omitempty"`
 	BaseURL   string           `yaml:"base_url,omitempty"`
 	Discovery *DiscoveryConfig `yaml:"discovery,omitempty"`
 }

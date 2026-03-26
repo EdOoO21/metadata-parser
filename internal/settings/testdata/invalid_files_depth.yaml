@@ -1,0 +1,11 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: demo_files
+    kind: files
+    config:
+      path: ./demo/files
+      max_depth: -1

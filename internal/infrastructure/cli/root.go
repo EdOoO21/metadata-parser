@@ -1,6 +1,37 @@
 package cli
 
-import "github.com/spf13/cobra"
+import (
+	"context"
+
+	appports "github.com/EdOoO21/metadata-parser/internal/application/ports"
+	runapp "github.com/EdOoO21/metadata-parser/internal/application/run"
+	"github.com/EdOoO21/metadata-parser/internal/settings"
+	"github.com/spf13/cobra"
+)
+
+type RunCatalogUseCase interface {
+	Execute(ctx context.Context, input runapp.ExecuteInput) (int64, error)
+}
+
+type ConfigLoader interface {
+	Load(path string) (*settings.AppConfig, error)
+}
+
+type ReportCatalogUseCase interface {
+	Execute(ctx context.Context, runID int64) (string, error)
+}
+
+type DiffCatalogUseCase interface {
+	Execute(ctx context.Context, fromRunID, toRunID int64) (string, error)
+}
+
+type Dependencies struct {
+	ConfigLoader         ConfigLoader
+	CatalogOpener        appports.CatalogRepositoryOpener
+	RunCatalogUseCase    RunCatalogUseCase
+	ReportCatalogUseCase ReportCatalogUseCase
+	DiffCatalogUseCase   DiffCatalogUseCase
+}
 
 const usageTemplate = `{{if .Runnable}}Использование:
   {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}Использование:
@@ -26,7 +57,7 @@ const usageTemplate = `{{if .Runnable}}Использование:
   {{.CommandPath}} help [command]{{end}}
 `
 
-func NewRootCmd() *cobra.Command {
+func NewRootCmd(deps Dependencies) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "catalog",
 		Short: "CLI для каталогизации и профилирования источников данных",
@@ -66,9 +97,9 @@ func NewRootCmd() *cobra.Command {
 		},
 	})
 
-	cmd.AddCommand(NewRunCmd())
-	cmd.AddCommand(NewReportCmd())
-	cmd.AddCommand(NewDiffCmd())
+	cmd.AddCommand(NewRunCmd(deps.ConfigLoader, deps.CatalogOpener, deps.RunCatalogUseCase))
+	cmd.AddCommand(NewReportCmd(deps.ReportCatalogUseCase))
+	cmd.AddCommand(NewDiffCmd(deps.DiffCatalogUseCase))
 
 	return cmd
 }

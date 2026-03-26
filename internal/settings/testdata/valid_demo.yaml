@@ -13,6 +13,7 @@ sources:
     kind: files
     config:
       path: ./demo/files
+      max_depth: 1
 
   - name: demo_api
     kind: rest

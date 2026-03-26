@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewDiffCmd() *cobra.Command {
+func NewDiffCmd(diffCatalogUseCase DiffCatalogUseCase) *cobra.Command {
 	var latest bool
 	var fromRunID int64
 	var toRunID int64
@@ -19,13 +19,19 @@ func NewDiffCmd() *cobra.Command {
 		Example: `  catalog diff --latest
   catalog diff --from-run-id 41 --to-run-id 42`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Fprintf(
-				cmd.OutOrStdout(),
-				"diff command received: latest=%t from-run-id=%d to-run-id=%d\n",
-				latest,
-				fromRunID,
-				toRunID,
-			)
+			if diffCatalogUseCase == nil {
+				return fmt.Errorf("diff catalog use case is not configured")
+			}
+			if err := validateDiffSelection(latest, fromRunID, toRunID); err != nil {
+				return err
+			}
+
+			message, err := diffCatalogUseCase.Execute(cmd.Context(), fromRunID, toRunID)
+			if err != nil {
+				return err
+			}
+
+			fmt.Fprintln(cmd.OutOrStdout(), message)
 			return nil
 		},
 	}
@@ -35,4 +41,14 @@ func NewDiffCmd() *cobra.Command {
 	cmd.Flags().Int64Var(&toRunID, "to-run-id", 0, "Идентификатор целевого запуска")
 
 	return cmd
+}
+
+func validateDiffSelection(latest bool, fromRunID, toRunID int64) error {
+	if latest {
+		panic("diff latest selector is not implemented yet")
+	}
+	if fromRunID <= 0 || toRunID <= 0 {
+		return fmt.Errorf("flags --from-run-id and --to-run-id are required")
+	}
+	return nil
 }

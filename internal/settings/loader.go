@@ -1,10 +1,9 @@
-package config
+package settings
 
 import (
 	"fmt"
 	"os"
 
-	"github.com/EdOoO21/metadata-parser/internal/application/dto"
 	"gopkg.in/yaml.v3"
 )
 
@@ -14,13 +13,13 @@ func NewLoader() *Loader {
 	return &Loader{}
 }
 
-func (l *Loader) Load(path string) (*dto.AppConfig, error) {
+func (l *Loader) Load(path string) (*AppConfig, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read config: %w", err)
 	}
 
-	var cfg dto.AppConfig
+	var cfg AppConfig
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("unmarshal yaml: %w", err)
 	}
@@ -32,7 +31,7 @@ func (l *Loader) Load(path string) (*dto.AppConfig, error) {
 	return &cfg, nil
 }
 
-func validateConfig(cfg *dto.AppConfig) error {
+func validateConfig(cfg *AppConfig) error {
 	if cfg.Version != 1 {
 		return fmt.Errorf("неподдерживаемая версия конфига: %d", cfg.Version)
 	}
@@ -63,6 +62,9 @@ func validateConfig(cfg *dto.AppConfig) error {
 		case "files":
 			if src.Config.Path == "" {
 				return fmt.Errorf("поле sources[%d].config.path обязательно для files", i)
+			}
+			if src.Config.MaxDepth < 0 {
+				return fmt.Errorf("поле sources[%d].config.max_depth не может быть отрицательным", i)
 			}
 		case "rest":
 			if src.Config.BaseURL == "" {
