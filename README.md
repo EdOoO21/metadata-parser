@@ -1,6 +1,6 @@
 # catalog-tool
 
-Стартовый scaffold проекта каталога метаданных на Go.
+Учебный CLI-проект каталога метаданных на Go.
 
 ## Что уже работает
 
@@ -10,19 +10,20 @@
 - валидация обязательных полей конфига
 - доменные модели под согласованную схему каталога
 - миграция `000001_init` для PostgreSQL-каталога
-- заготовка PostgreSQL pool/repository
-- базовые unit-тесты для конфигурации
+- PostgreSQL repository для записи и чтения каталога
+- файловый CSV-коннектор с профилированием
+- базовый `report` в Markdown и CSV
+- unit-тесты на ключевые слои
 
 ## Что пока не реализовано
 
-- реальная запись слепка в PostgreSQL
-- обход файловых источников и профилирование CSV/Parquet
+- Parquet-коннектор
 - обход PostgreSQL-источников
 - discovery и профилирование REST/OpenAPI
-- полноценные `report` и `diff`
+- полноценный `diff`
 
-Сейчас это **bootstrap-версия**, на которой уже можно проверить каркас проекта,
-CLI и формат конфига.
+Сейчас это **MVP-версия**, на которой уже можно прогнать CSV-источник,
+сохранить слепок в каталог и построить базовый отчет по run.
 
 ## Требования
 
@@ -52,7 +53,7 @@ go build -o bin/catalog ./cmd/catalog
 ./bin/catalog diff --help
 ```
 
-### 4. Проверить bootstrap `run`
+### 4. Выполнить `run`
 
 ```bash
 go run ./cmd/catalog run --config ./demo/config/demo.yaml
@@ -60,8 +61,31 @@ go run ./cmd/catalog run --config ./demo/config/demo.yaml
 
 Ожидаемый результат:
 - конфиг успешно читается;
-- в лог выводятся найденные источники;
-- в stdout печатается строка про успешное завершение bootstrap-этапа.
+- CSV-источники профилируются;
+- слепок записывается в каталог;
+- в stdout печатается `run_id`.
+
+### 5. Построить отчет по run
+
+```bash
+go run ./cmd/catalog report --config ./demo/config/demo.yaml --run-id 1
+go run ./cmd/catalog report --config ./demo/config/demo.yaml --run-id 1 --output ./report.md --csv-output ./report.csv
+```
+
+Ожидаемый результат:
+- в stdout или файл строится Markdown-карта источников, датасетов и колонок;
+- при `--csv-output` создается плоский CSV-экспорт колонок.
+
+### 6. Сравнить два запуска
+
+```bash
+go run ./cmd/catalog diff --config ./demo/config/demo.yaml --from-run-id 1 --to-run-id 2
+```
+
+Ожидаемый результат:
+- в stdout выводятся новые и удаленные датасеты;
+- показываются новые и удаленные колонки;
+- отдельно выводятся изменения типа, nullable и комментария.
 
 ## Тесты
 
@@ -87,11 +111,8 @@ make test
 
 ## Следующий этап
 
-Следующим шагом будет реализован первый рабочий vertical slice:
-- PostgreSQL-каталог
-- миграции
-- `run`
-- files source
-- CSV parsing
-- profiling
-- запись snapshot в БД
+Следующим шагом будут:
+- Parquet-коннектор
+- PostgreSQL-коннектор
+- REST-коннектор
+- развитие `diff` до сравнения статистики и top values

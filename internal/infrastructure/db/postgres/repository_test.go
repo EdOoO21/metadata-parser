@@ -53,6 +53,7 @@ func (r *fakeBatchResults) Close() error {
 
 type fakeDB struct {
 	queryRowFn  func(ctx context.Context, sql string, args ...any) pgx.Row
+	queryFn     func(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
 	execFn      func(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
 	sendBatchFn func(ctx context.Context, batch *pgx.Batch) pgx.BatchResults
 }
@@ -62,6 +63,13 @@ func (db *fakeDB) Exec(ctx context.Context, sql string, args ...any) (pgconn.Com
 		return pgconn.CommandTag{}, nil
 	}
 	return db.execFn(ctx, sql, args...)
+}
+
+func (db *fakeDB) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+	if db.queryFn == nil {
+		return nil, nil
+	}
+	return db.queryFn(ctx, sql, args...)
 }
 
 func (db *fakeDB) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {

@@ -3,13 +3,18 @@ package filescsv
 import (
 	"context"
 	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
+
+	"github.com/EdOoO21/metadata-parser/internal/domain/types"
 )
 
 func normalizeCSVParseOptions(opts CSVParseOptions) CSVParseOptions {
@@ -212,4 +217,82 @@ func pathDepth(relPath string) int {
 
 func isCSVPath(path string) bool {
 	return strings.EqualFold(filepath.Ext(path), ".csv")
+}
+
+func isNullishCSVValue(value string) bool {
+	return strings.TrimSpace(value) == ""
+}
+
+func isBooleanValue(value string) bool {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "true", "false", "1", "0", "yes", "no", "y", "n":
+		return true
+	default:
+		return false
+	}
+}
+
+func parseBoolean(value string) (bool, error) {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "true", "1", "yes", "y":
+		return true, nil
+	case "false", "0", "no", "n":
+		return false, nil
+	default:
+		return false, fmt.Errorf("not a boolean: %q", value)
+	}
+}
+
+func parseTimestamp(value string) (time.Time, error) {
+	value = strings.TrimSpace(value)
+	layouts := []string{
+		time.RFC3339Nano,
+		time.RFC3339,
+		"2006-01-02 15:04:05",
+		"2006-01-02 15:04:05Z07:00",
+		"2006-01-02",
+	}
+
+	for _, layout := range layouts {
+		if parsed, err := time.Parse(layout, value); err == nil {
+			return parsed, nil
+		}
+	}
+
+	return time.Time{}, fmt.Errorf("not a timestamp: %q", value)
+}
+
+func parseJSONValue(value string, canonicalType types.CanonicalType) ([]byte, error) {
+	switch canonicalType {
+	case types.CanonicalTypeBoolean:
+		parsed, err := parseBoolean(value)
+		if err != nil {
+			return nil, err
+		}
+		return json.Marshal(parsed)
+	case types.CanonicalTypeNumber:
+		if parsedInt, err := strconv.ParseInt(value, 10, 64); err == nil {
+			return json.Marshal(parsedInt)
+		}
+		parsedFloat, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			return nil, err
+		}
+		return json.Marshal(parsedFloat)
+	case types.CanonicalTypeTimestamp:
+		parsed, err := parseTimestamp(value)
+		if err != nil {
+			return nil, err
+		}
+		return json.Marshal(parsed.Format(time.RFC3339Nano))
+	default:
+		return json.Marshal(value)
+	}
+}
+
+func minInt(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

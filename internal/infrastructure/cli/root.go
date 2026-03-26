@@ -3,7 +3,9 @@ package cli
 import (
 	"context"
 
+	diffapp "github.com/EdOoO21/metadata-parser/internal/application/diff"
 	appports "github.com/EdOoO21/metadata-parser/internal/application/ports"
+	reportapp "github.com/EdOoO21/metadata-parser/internal/application/report"
 	runapp "github.com/EdOoO21/metadata-parser/internal/application/run"
 	"github.com/EdOoO21/metadata-parser/internal/settings"
 	"github.com/spf13/cobra"
@@ -18,11 +20,11 @@ type ConfigLoader interface {
 }
 
 type ReportCatalogUseCase interface {
-	Execute(ctx context.Context, runID int64) (string, error)
+	Execute(ctx context.Context, input reportapp.ExecuteInput) (*reportapp.Result, error)
 }
 
 type DiffCatalogUseCase interface {
-	Execute(ctx context.Context, fromRunID, toRunID int64) (string, error)
+	Execute(ctx context.Context, input diffapp.ExecuteInput) (string, error)
 }
 
 type Dependencies struct {
@@ -65,10 +67,8 @@ func NewRootCmd(deps Dependencies) *cobra.Command {
 снимает паспорт датасетов, сохраняет слепки в каталог
 и показывает отчёты и различия.`,
 		Example: `  catalog run --config ./demo/config/demo.yaml
-  catalog report --latest
-  catalog report --run-id 42
-  catalog diff --latest
-  catalog diff --from-run-id 41 --to-run-id 42`,
+  catalog report --config ./demo/config/demo.yaml --run-id 42
+  catalog diff --config ./demo/config/demo.yaml --from-run-id 41 --to-run-id 42`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
@@ -98,8 +98,8 @@ func NewRootCmd(deps Dependencies) *cobra.Command {
 	})
 
 	cmd.AddCommand(NewRunCmd(deps.ConfigLoader, deps.CatalogOpener, deps.RunCatalogUseCase))
-	cmd.AddCommand(NewReportCmd(deps.ReportCatalogUseCase))
-	cmd.AddCommand(NewDiffCmd(deps.DiffCatalogUseCase))
+	cmd.AddCommand(NewReportCmd(deps.ConfigLoader, deps.CatalogOpener, deps.ReportCatalogUseCase))
+	cmd.AddCommand(NewDiffCmd(deps.ConfigLoader, deps.CatalogOpener, deps.DiffCatalogUseCase))
 
 	return cmd
 }

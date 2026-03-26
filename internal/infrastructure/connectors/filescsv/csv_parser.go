@@ -9,9 +9,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
-	"strings"
-	"time"
 
 	"github.com/EdOoO21/metadata-parser/internal/application/contracts"
 	appports "github.com/EdOoO21/metadata-parser/internal/application/ports"
@@ -73,13 +70,14 @@ func (p *CSVParser) ParseSource(ctx context.Context, src settings.SourceConfig) 
 	}
 
 	scannedDatasets := make([]contracts.ScannedDataset, 0, len(paths))
+	profiler := NewCSVProfiler()
 	for _, path := range paths {
-		result, err := p.ParseFile(ctx, path, opts)
+		result, err := p.ParseFile(ctx, path, DefaultCSVParseOptions())
 		if err != nil {
 			return nil, fmt.Errorf("parse csv file %q: %w", path, err)
 		}
 
-		dataset, err := buildScannedDataset(path, result, opts.MaxRows)
+		dataset, err := profiler.BuildDataset(path, result, opts.MaxRows)
 		if err != nil {
 			return nil, fmt.Errorf("build scanned dataset %q: %w", path, err)
 		}
@@ -180,50 +178,6 @@ func (p *CSVParser) Parse(ctx context.Context, r io.Reader, opts CSVParseOptions
 	}
 
 	return &CSVParseResult{Headers: headers, Rows: rows}, nil
-}
-
-func buildScannedDataset(path string, result *CSVParseResult, sampleLimit int) (contracts.ScannedDataset, error) {
-	metadataJSON, err := json.Marshal(map[string]any{
-		"format":       "csv",
-		"headers":      append([]string(nil), result.Headers...),
-		"sample_rows":  len(result.Rows),
-		"sample_limit": sampleLimit,
-		"source_path":  path,
-	})
-	if err != nil {
-		return contracts.ScannedDataset{}, err
-	}
-
-	datasetName := filepath.Base(path)
-	if strings.TrimSpace(datasetName) == "" {
-		datasetName = path
-	}
-
-	columns := make([]contracts.ScannedColumn, 0, len(result.Headers))
-	for i, header := range result.Headers {
-		columns = append(columns, contracts.ScannedColumn{
-			Column: model.Column{
-				Name:            header,
-				OriginalType:    "csv",
-				NormalizedType:  types.CanonicalTypeString,
-				IsNullable:      true,
-				OrdinalPosition: i + 1,
-			},
-		})
-	}
-
-	return contracts.ScannedDataset{
-		Dataset: model.Dataset{
-			Kind:          types.DatasetKindFile,
-			DatasetKey:    path,
-			Name:          datasetName,
-			Location:      path,
-			DiscoveredAt:  time.Now().UTC(),
-			ProfileStatus: types.ProfileStatusDiscoveredOnly,
-			MetadataJSON:  metadataJSON,
-		},
-		Columns: columns,
-	}, nil
 }
 
 var _ appports.CSVParser = (*CSVParser)(nil)

@@ -17,6 +17,7 @@ import (
 
 type dbtx interface {
 	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
+	Query(ctx context.Context, sql string, arguments ...any) (pgx.Rows, error)
 	QueryRow(ctx context.Context, args string, arguments ...any) pgx.Row
 }
 
@@ -120,6 +121,17 @@ RETURNING id, started_at, finished_at, status, config_hash, config_snapshot_json
 	)
 
 	return scanRun(row, "create run")
+}
+
+func (r *Repository) GetRun(ctx context.Context, runID int64) (*model.Run, error) {
+	const query = `
+SELECT id, started_at, finished_at, status, config_hash, config_snapshot_json, error_message
+FROM runs
+WHERE id = $1
+`
+
+	row := r.db.QueryRow(ctx, query, runID)
+	return scanRun(row, fmt.Sprintf("get run %d", runID))
 }
 
 func (r *Repository) UpdateRunStatus(
@@ -337,6 +349,87 @@ VALUES ($1, $2, $3, $4)
 	}
 
 	return nil
+}
+
+func (r *Repository) ListReportRows(ctx context.Context, runID int64) ([]appports.ReportRow, error) {
+	const query = `
+SELECT
+    s.name,
+    s.kind,
+    d.name,
+    d.kind,
+    d.dataset_key,
+    d.location,
+    d.comment,
+    d.row_count,
+    d.profile_status,
+    c.name,
+    c.original_type,
+    c.normalized_type,
+    c.is_nullable,
+    c.comment,
+    c.ordinal_position
+FROM run_sources rs
+JOIN sources s ON s.id = rs.source_id
+JOIN datasets d ON d.run_source_id = rs.id
+JOIN columns c ON c.dataset_id = d.id
+WHERE rs.run_id = $1
+ORDER BY s.name, d.name, c.ordinal_position, c.name
+`
+
+	rows, err := r.db.Query(ctx, query, runID)
+	if err != nil {
+		return nil, fmt.Errorf("list report rows for run %d: %w", runID, err)
+	}
+	defer rows.Close()
+
+	result := make([]appports.ReportRow, 0, 64)
+	for rows.Next() {
+		var item appports.ReportRow
+		var sourceKind string
+		var datasetKind string
+		var datasetComment *string
+		var datasetRowCount *int64
+		var profileStatus string
+		var normalizedType string
+		var columnComment *string
+
+		if err := rows.Scan(
+			&item.SourceName,
+			&sourceKind,
+			&item.DatasetName,
+			&datasetKind,
+			&item.DatasetKey,
+			&item.DatasetLocation,
+			&datasetComment,
+			&datasetRowCount,
+			&profileStatus,
+			&item.ColumnName,
+			&item.ColumnOriginalType,
+			&normalizedType,
+			&item.ColumnIsNullable,
+			&columnComment,
+			&item.ColumnOrdinal,
+		); err != nil {
+			return nil, fmt.Errorf("scan report row: %w", err)
+		}
+
+		item.SourceKind = types.SourceKind(sourceKind)
+		item.DatasetKind = types.DatasetKind(datasetKind)
+		item.DatasetComment = datasetComment
+		item.DatasetRowCount = datasetRowCount
+		item.DatasetProfileStatus = types.ProfileStatus(profileStatus)
+		item.ColumnNormalizedType = types.CanonicalType(normalizedType)
+		item.ColumnComment = columnComment
+
+		result = append(result, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate report rows: %w", err)
+	}
+
+	return result, nil
 }
 
 func (r *Repository) batchSender() interface {
