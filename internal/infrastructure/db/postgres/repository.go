@@ -610,13 +610,7 @@ func marshalJSONValue(value []byte) any {
 	if len(value) == 0 {
 		return nil
 	}
-
-	var decoded any
-	if err := json.Unmarshal(value, &decoded); err == nil {
-		return decoded
-	}
-
-	return string(value)
+	return json.RawMessage(cloneBytes(value))
 }
 
 func cloneBytes(src []byte) []byte {

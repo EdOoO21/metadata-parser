@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"reflect"
 	"testing"
@@ -519,21 +520,21 @@ func TestNullableJSONValidAndInvalid(t *testing.T) {
 	t.Parallel()
 
 	valid := nullableJSON([]byte(`{"key":"value"}`))
-	validMap, ok := valid.(map[string]any)
+	validRaw, ok := valid.(json.RawMessage)
 	if !ok {
-		t.Fatalf("expected valid JSON to decode into map, got %T", valid)
+		t.Fatalf("expected valid JSON to stay raw JSON, got %T", valid)
 	}
-	if validMap["key"] != "value" {
-		t.Fatalf("unexpected decoded map: %#v", validMap)
+	if string(validRaw) != `{"key":"value"}` {
+		t.Fatalf("unexpected raw JSON: %s", string(validRaw))
 	}
 
 	invalid := nullableJSON([]byte(`not-json`))
-	invalidString, ok := invalid.(string)
+	invalidRaw, ok := invalid.(json.RawMessage)
 	if !ok {
-		t.Fatalf("expected invalid JSON to fall back to string, got %T", invalid)
+		t.Fatalf("expected invalid JSON bytes to stay raw JSON, got %T", invalid)
 	}
-	if invalidString != "not-json" {
-		t.Fatalf("unexpected fallback string: %q", invalidString)
+	if string(invalidRaw) != "not-json" {
+		t.Fatalf("unexpected raw JSON fallback: %q", string(invalidRaw))
 	}
 
 	if got := nullableJSON(nil); got != nil {

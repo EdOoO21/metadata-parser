@@ -14,14 +14,20 @@ import (
 )
 
 type SourceProcessor struct {
-	logger             ports.Logger
-	filesSourceHandler *FilesSourceHandler
+	logger         ports.Logger
+	scannerFactory appports.SourceScannerFactory
+	sourceHandler  *ScannerSourceHandler
 }
 
-func NewSourceProcessor(logger ports.Logger, filesSourceHandler *FilesSourceHandler) *SourceProcessor {
+func NewSourceProcessor(
+	logger ports.Logger,
+	scannerFactory appports.SourceScannerFactory,
+	sourceHandler *ScannerSourceHandler,
+) *SourceProcessor {
 	return &SourceProcessor{
-		logger:             logger,
-		filesSourceHandler: filesSourceHandler,
+		logger:         logger,
+		scannerFactory: scannerFactory,
+		sourceHandler:  sourceHandler,
 	}
 }
 
@@ -95,13 +101,18 @@ func (p *SourceProcessor) handleByKind(
 	runSourceID int64,
 	src settings.SourceConfig,
 ) error {
-	switch src.Kind {
-	case string(types.SourceKindFiles):
-		if p.filesSourceHandler == nil {
-			return fmt.Errorf("files source handler is not configured")
-		}
-		return p.filesSourceHandler.Handle(ctx, repo, runSourceID, src)
-	default:
-		return fmt.Errorf("source kind %q is not implemented yet", src.Kind)
+	if p.scannerFactory == nil {
+		return fmt.Errorf("source scanner factory is not configured")
 	}
+
+	if p.sourceHandler == nil {
+		return fmt.Errorf("source handler is not configured")
+	}
+
+	scanner, err := p.scannerFactory.ForSource(src)
+	if err != nil {
+		return err
+	}
+
+	return p.sourceHandler.Handle(ctx, repo, runSourceID, src, scanner)
 }

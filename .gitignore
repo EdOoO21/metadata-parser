@@ -1,8 +1,8 @@
 coverage.*
 bin
 .vscode
-docker-compose.yml
 .env
 scripts
 guide.txt
+test
 demo

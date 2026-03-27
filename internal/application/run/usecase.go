@@ -60,7 +60,6 @@ func (uc *RunCatalogUseCase) Execute(ctx context.Context, input ExecuteInput) (i
 		"run_id", run.ID,
 		"status", string(run.Status),
 	)
-	uc.logger.Warn("run profiling is currently limited to CSV preview mode")
 
 	var processingErrors []string
 	var successCount int

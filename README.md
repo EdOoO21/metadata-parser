@@ -1,8 +1,8 @@
-# catalog-tool
+# metadata-parser
 
 Учебный CLI-проект каталога метаданных на Go.
 
-## Что уже работает
+## Состав проекта
 
 - CLI с командами `run`, `report`, `diff`
 - help и описания команд на русском языке
@@ -12,80 +12,70 @@
 - миграция `000001_init` для PostgreSQL-каталога
 - PostgreSQL repository для записи и чтения каталога
 - файловый CSV-коннектор с профилированием
-- базовый `report` в Markdown и CSV
+- Parquet-коннектор с профилированием
+- PostgreSQL-коннектор с профилированием
+- REST/OpenAPI-коннектор с discovery и профилированием простых `GET` endpoint-ов
+- общая фабрика scanner-ов по типу source
+- `report` в Markdown и CSV
+- `diff` по датасетам и колонкам
 - unit-тесты на ключевые слои
 
-## Что пока не реализовано
-
-- Parquet-коннектор
-- обход PostgreSQL-источников
-- discovery и профилирование REST/OpenAPI
-- полноценный `diff`
-
-Сейчас это **MVP-версия**, на которой уже можно прогнать CSV-источник,
-сохранить слепок в каталог и построить базовый отчет по run.
+В проекте можно прогнать CSV, Parquet, PostgreSQL и REST-источники,
+сохранить слепок в каталог, построить отчет по run и сравнить два запуска.
 
 ## Требования
 
 - Go 1.23.2+
-- Docker и Docker Compose — понадобятся на следующем этапе для PostgreSQL-каталога
+- Docker и Docker Compose — нужны для локального запуска сервиса и e2e-demo
+
+## Docker Compose
+
+В проекте теперь два compose-контура:
+- [`docker-compose.yml`](/home/edo/metadata-parser/docker-compose.yml) — локальный запуск самого приложения и каталога
+- [`test/e2e/docker-compose.yml`](/home/edo/metadata-parser/test/e2e/docker-compose.yml) — расширенный demo/e2e стенд с тестовым REST-источником
 
 ## Быстрый старт
 
-### 1. Подтянуть зависимости
+### 1. Поднять сервис
 
 ```bash
-go mod tidy
+docker compose up --build -d
 ```
 
-### 2. Собрать проект
+После запуска будут доступны:
+- `catalog_db` на `localhost:5432`
+- контейнер `catalog` с CLI внутри
+
+### 2. Выполнить `run` для файлового источника
 
 ```bash
-go build -o bin/catalog ./cmd/catalog
+docker compose exec catalog /app/catalog run --config /app/demo/config/files-only.yaml
 ```
 
-### 3. Посмотреть help
+### 3. Построить отчет
 
 ```bash
-./bin/catalog --help
-./bin/catalog run --help
-./bin/catalog report --help
-./bin/catalog diff --help
+docker compose exec catalog /app/catalog report --config /app/demo/config/files-only.yaml --run-id 1
 ```
 
-### 4. Выполнить `run`
+### 4. Остановить сервис
 
 ```bash
+docker compose down -v
+```
+
+## Demo e2e
+
+Для сценария с `postgres`, `files` и `rest` demo-источниками:
+
+```bash
+docker compose -f ./test/e2e/docker-compose.yml up -d catalog_db demo_api
+docker compose -f ./test/e2e/docker-compose.yml --profile migrate up catalog_db_migrate
 go run ./cmd/catalog run --config ./demo/config/demo.yaml
-```
-
-Ожидаемый результат:
-- конфиг успешно читается;
-- CSV-источники профилируются;
-- слепок записывается в каталог;
-- в stdout печатается `run_id`.
-
-### 5. Построить отчет по run
-
-```bash
 go run ./cmd/catalog report --config ./demo/config/demo.yaml --run-id 1
-go run ./cmd/catalog report --config ./demo/config/demo.yaml --run-id 1 --output ./report.md --csv-output ./report.csv
-```
-
-Ожидаемый результат:
-- в stdout или файл строится Markdown-карта источников, датасетов и колонок;
-- при `--csv-output` создается плоский CSV-экспорт колонок.
-
-### 6. Сравнить два запуска
-
-```bash
 go run ./cmd/catalog diff --config ./demo/config/demo.yaml --from-run-id 1 --to-run-id 2
+docker compose -f ./test/e2e/docker-compose.yml down -v
 ```
-
-Ожидаемый результат:
-- в stdout выводятся новые и удаленные датасеты;
-- показываются новые и удаленные колонки;
-- отдельно выводятся изменения типа, nullable и комментария.
 
 ## Тесты
 
@@ -105,14 +95,10 @@ make test
 
 Файл `demo/config/demo.yaml` описывает:
 - каталог PostgreSQL через `CATALOG_DSN`
-- исходный PostgreSQL-источник через `DEMO_PG_DSN`
+- исходный PostgreSQL-источник `source_demo` через `DEMO_PG_DSN`
 - файловый источник через путь `./demo/files` с глубиной обхода `max_depth`
 - REST API через `base_url` и OpenAPI discovery
 
-## Следующий этап
+Файл [`test/e2e/docker-compose.yml`](/home/edo/metadata-parser/test/e2e/docker-compose.yml) нужен только для локального demo/e2e сценария и не является частью продового окружения.
 
-Следующим шагом будут:
-- Parquet-коннектор
-- PostgreSQL-коннектор
-- REST-коннектор
-- развитие `diff` до сравнения статистики и top values
+Для простого локального запуска только файлового источника можно использовать корневой compose и конфиг [`demo/config/files-only.yaml`](/home/edo/metadata-parser/demo/config/files-only.yaml).

@@ -1,0 +1,56 @@
+services:
+  catalog_db:
+    image: public.ecr.aws/docker/library/postgres:17
+    environment:
+      POSTGRES_DB: ${CATALOG_DB_NAME}
+      POSTGRES_USER: ${CATALOG_DB_USER}
+      POSTGRES_PASSWORD: ${CATALOG_DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - catalog_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  catalog_db_migrate:
+    image: public.ecr.aws/docker/library/postgres:17
+    depends_on:
+      catalog_db:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ${CATALOG_DB_PASSWORD}
+      CATALOG_DB_HOST: catalog_db
+      CATALOG_DB_PORT: 5432
+      CATALOG_DB_NAME: ${CATALOG_DB_NAME}
+      CATALOG_DB_USER: ${CATALOG_DB_USER}
+    volumes:
+      - ./internal/infrastructure/db/postgres/migrations:/migrations:ro
+      - ./scripts:/scripts:ro
+    entrypoint: ["/bin/sh", "/scripts/migrate.sh"]
+    restart: "no"
+
+  catalog:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      CATALOG_DSN: postgres://${CATALOG_DB_USER}:${CATALOG_DB_PASSWORD}@catalog_db:5432/${CATALOG_DB_NAME}?sslmode=disable
+      DEMO_PG_DSN: postgres://${CATALOG_DB_USER}:${CATALOG_DB_PASSWORD}@catalog_db:5432/source_demo?sslmode=disable
+    depends_on:
+      catalog_db:
+        condition: service_healthy
+      catalog_db_migrate:
+        condition: service_completed_successfully
+    volumes:
+      - ./demo:/app/demo:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["sleep infinity"]
+
+volumes:
+  catalog_db_data:

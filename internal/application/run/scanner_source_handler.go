@@ -11,35 +11,34 @@ import (
 	"github.com/EdOoO21/metadata-parser/internal/settings"
 )
 
-type FilesSourceHandler struct {
-	csvParser appports.CSVParser
-	logger    ports.Logger
+type ScannerSourceHandler struct {
+	logger ports.Logger
 }
 
-func NewFilesSourceHandler(csvParser appports.CSVParser, logger ports.Logger) *FilesSourceHandler {
-	return &FilesSourceHandler{
-		csvParser: csvParser,
-		logger:    logger,
+func NewScannerSourceHandler(logger ports.Logger) *ScannerSourceHandler {
+	return &ScannerSourceHandler{
+		logger: logger,
 	}
 }
 
-func (h *FilesSourceHandler) Handle(
+func (h *ScannerSourceHandler) Handle(
 	ctx context.Context,
 	repo appports.CatalogRepository,
 	runSourceID int64,
 	src settings.SourceConfig,
+	scanner appports.SourceScanner,
 ) error {
-	if h.csvParser == nil {
-		return fmt.Errorf("csv parser is not configured")
+	if scanner == nil {
+		return fmt.Errorf("source scanner is not configured")
 	}
 
-	result, err := h.csvParser.ParseSource(ctx, src)
+	result, err := scanner.ParseSource(ctx, src)
 	if err != nil {
-		return fmt.Errorf("parse csv source: %w", err)
+		return fmt.Errorf("parse source: %w", err)
 	}
 
 	if len(result.Datasets) == 0 {
-		return fmt.Errorf("files source %q did not return any datasets", src.Name)
+		return fmt.Errorf("source %q did not return any datasets", src.Name)
 	}
 
 	for _, scannedDataset := range result.Datasets {
@@ -51,7 +50,7 @@ func (h *FilesSourceHandler) Handle(
 	return nil
 }
 
-func (h *FilesSourceHandler) persistScannedDataset(
+func (h *ScannerSourceHandler) persistScannedDataset(
 	ctx context.Context,
 	repo appports.CatalogRepository,
 	runSourceID int64,
@@ -98,7 +97,7 @@ func (h *FilesSourceHandler) persistScannedDataset(
 	}
 
 	if h.logger != nil {
-		h.logger.Info("file dataset stored",
+		h.logger.Info("dataset stored",
 			"dataset_id", dataset.ID,
 			"dataset_name", dataset.Name,
 			"location", dataset.Location,

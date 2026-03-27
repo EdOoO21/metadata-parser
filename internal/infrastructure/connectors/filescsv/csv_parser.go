@@ -180,4 +180,4 @@ func (p *CSVParser) Parse(ctx context.Context, r io.Reader, opts CSVParseOptions
 	return &CSVParseResult{Headers: headers, Rows: rows}, nil
 }
 
-var _ appports.CSVParser = (*CSVParser)(nil)
+var _ appports.SourceScanner = (*CSVParser)(nil)

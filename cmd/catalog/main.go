@@ -8,7 +8,11 @@ import (
 	reportapp "github.com/EdOoO21/metadata-parser/internal/application/report"
 	runapp "github.com/EdOoO21/metadata-parser/internal/application/run"
 	"github.com/EdOoO21/metadata-parser/internal/infrastructure/cli"
+	connectorfactory "github.com/EdOoO21/metadata-parser/internal/infrastructure/connectors/factory"
 	filescsv "github.com/EdOoO21/metadata-parser/internal/infrastructure/connectors/filescsv"
+	parquetsrc "github.com/EdOoO21/metadata-parser/internal/infrastructure/connectors/parquet"
+	postgressrc "github.com/EdOoO21/metadata-parser/internal/infrastructure/connectors/postgressrc"
+	restopenapi "github.com/EdOoO21/metadata-parser/internal/infrastructure/connectors/restopenapi"
 	"github.com/EdOoO21/metadata-parser/internal/infrastructure/db/postgres"
 	"github.com/EdOoO21/metadata-parser/internal/infrastructure/logging"
 	"github.com/EdOoO21/metadata-parser/internal/settings"
@@ -19,9 +23,14 @@ func main() {
 	configLoader := settings.NewLoader()
 	catalogOpener := postgres.NewRepositoryOpener()
 
-	csvParser := filescsv.NewCSVParser()
-	filesSourceHandler := runapp.NewFilesSourceHandler(csvParser, logger)
-	sourceProcessor := runapp.NewSourceProcessor(logger, filesSourceHandler)
+	csvScanner := filescsv.NewCSVParser()
+	parquetScanner := parquetsrc.NewScanner()
+	postgresScanner := postgressrc.NewScanner()
+	restScanner := restopenapi.NewScanner()
+
+	scannerFactory := connectorfactory.New(csvScanner, parquetScanner, postgresScanner, restScanner)
+	sourceHandler := runapp.NewScannerSourceHandler(logger)
+	sourceProcessor := runapp.NewSourceProcessor(logger, scannerFactory, sourceHandler)
 
 	runCatalogUseCase := runapp.NewRunCatalogUseCase(
 		logger,
