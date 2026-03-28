@@ -8,25 +8,43 @@ import (
 	"github.com/EdOoO21/metadata-parser/internal/application/contracts"
 	"github.com/EdOoO21/metadata-parser/internal/domain/model"
 	"github.com/EdOoO21/metadata-parser/internal/domain/types"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const defaultPostgresTopValuesLimit = 5
 
+type queryRower interface {
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+}
+
+type queryer interface {
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+}
+
+type profileDB interface {
+	queryRower
+	queryer
+}
+
 func profileDataset(ctx context.Context, pool *pgxpool.Pool, dataset *contracts.ScannedDataset) error {
+	return profileDatasetWithDB(ctx, pool, dataset)
+}
+
+func profileDatasetWithDB(ctx context.Context, db profileDB, dataset *contracts.ScannedDataset) error {
 	schemaName, datasetName, err := parseDatasetLocation(dataset.Dataset.Location)
 	if err != nil {
 		return err
 	}
 
-	rowCount, err := queryRowCount(ctx, pool, schemaName, datasetName)
+	rowCount, err := queryRowCount(ctx, db, schemaName, datasetName)
 	if err != nil {
 		return err
 	}
 	dataset.Dataset.RowCount = &rowCount
 
 	for i := range dataset.Columns {
-		stat, topValues, err := profileColumn(ctx, pool, schemaName, datasetName, dataset.Columns[i].Column)
+		stat, topValues, err := profileColumn(ctx, db, schemaName, datasetName, dataset.Columns[i].Column)
 		if err != nil {
 			return fmt.Errorf("profile column %q: %w", dataset.Columns[i].Column.Name, err)
 		}
@@ -40,7 +58,7 @@ func profileDataset(ctx context.Context, pool *pgxpool.Pool, dataset *contracts.
 
 func profileColumn(
 	ctx context.Context,
-	pool *pgxpool.Pool,
+	db profileDB,
 	schemaName string,
 	datasetName string,
 	column model.Column,
@@ -57,12 +75,12 @@ func profileColumn(
 	)
 
 	stat := &model.ColumnStat{}
-	if err := pool.QueryRow(ctx, statsQuery).Scan(&stat.NonNullCount, &stat.NullCount, &stat.DistinctCount); err != nil {
+	if err := db.QueryRow(ctx, statsQuery).Scan(&stat.NonNullCount, &stat.NullCount, &stat.DistinctCount); err != nil {
 		return nil, nil, fmt.Errorf("query column stats: %w", err)
 	}
 
 	if column.NormalizedType == types.CanonicalTypeNumber || column.NormalizedType == types.CanonicalTypeTimestamp {
-		minValueJSON, maxValueJSON, err := queryMinMax(ctx, pool, qualifiedName, columnName)
+		minValueJSON, maxValueJSON, err := queryMinMax(ctx, db, qualifiedName, columnName)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -70,7 +88,7 @@ func profileColumn(
 		stat.MaxValueJSON = maxValueJSON
 	}
 
-	topValues, err := queryTopValues(ctx, pool, qualifiedName, columnName)
+	topValues, err := queryTopValues(ctx, db, qualifiedName, columnName)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -78,18 +96,18 @@ func profileColumn(
 	return stat, topValues, nil
 }
 
-func queryRowCount(ctx context.Context, pool *pgxpool.Pool, schemaName string, datasetName string) (int64, error) {
+func queryRowCount(ctx context.Context, db queryRower, schemaName string, datasetName string) (int64, error) {
 	query := fmt.Sprintf(`SELECT COUNT(*) FROM %s`, qualifyName(schemaName, datasetName))
 
 	var rowCount int64
-	if err := pool.QueryRow(ctx, query).Scan(&rowCount); err != nil {
+	if err := db.QueryRow(ctx, query).Scan(&rowCount); err != nil {
 		return 0, fmt.Errorf("query row count: %w", err)
 	}
 
 	return rowCount, nil
 }
 
-func queryMinMax(ctx context.Context, pool *pgxpool.Pool, qualifiedName string, columnName string) ([]byte, []byte, error) {
+func queryMinMax(ctx context.Context, db queryRower, qualifiedName string, columnName string) ([]byte, []byte, error) {
 	query := fmt.Sprintf(
 		`SELECT to_jsonb(MIN(%s))::text, to_jsonb(MAX(%s))::text FROM %s WHERE %s IS NOT NULL`,
 		columnName,
@@ -100,14 +118,14 @@ func queryMinMax(ctx context.Context, pool *pgxpool.Pool, qualifiedName string, 
 
 	var minValue *string
 	var maxValue *string
-	if err := pool.QueryRow(ctx, query).Scan(&minValue, &maxValue); err != nil {
+	if err := db.QueryRow(ctx, query).Scan(&minValue, &maxValue); err != nil {
 		return nil, nil, fmt.Errorf("query min/max: %w", err)
 	}
 
 	return nullableJSONString(minValue), nullableJSONString(maxValue), nil
 }
 
-func queryTopValues(ctx context.Context, pool *pgxpool.Pool, qualifiedName string, columnName string) ([]model.ColumnTopValue, error) {
+func queryTopValues(ctx context.Context, db queryer, qualifiedName string, columnName string) ([]model.ColumnTopValue, error) {
 	query := fmt.Sprintf(
 		`SELECT to_jsonb(%[1]s)::text, COUNT(*)
 FROM %[2]s
@@ -120,7 +138,7 @@ LIMIT %[3]d`,
 		defaultPostgresTopValuesLimit,
 	)
 
-	rows, err := pool.Query(ctx, query)
+	rows, err := db.Query(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("query top values: %w", err)
 	}

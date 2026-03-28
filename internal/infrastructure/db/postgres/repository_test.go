@@ -32,6 +32,106 @@ type fakeBatchResults struct {
 	closeErr  error
 }
 
+type fakeRows struct {
+	index int
+	rows  [][]any
+	err   error
+}
+
+func (r *fakeRows) Close() {}
+
+func (r *fakeRows) Err() error {
+	return r.err
+}
+
+func (r *fakeRows) CommandTag() pgconn.CommandTag {
+	return pgconn.CommandTag{}
+}
+
+func (r *fakeRows) FieldDescriptions() []pgconn.FieldDescription {
+	return nil
+}
+
+func (r *fakeRows) Next() bool {
+	if r.index >= len(r.rows) {
+		return false
+	}
+	r.index++
+	return true
+}
+
+func (r *fakeRows) Scan(dest ...any) error {
+	if r.index == 0 || r.index > len(r.rows) {
+		return errors.New("scan called without current row")
+	}
+
+	row := r.rows[r.index-1]
+	if len(row) < len(dest) {
+		return errors.New("row has fewer columns than destinations")
+	}
+	for i := range dest {
+		switch target := dest[i].(type) {
+		case *string:
+			if row[i] == nil {
+				*target = ""
+			} else {
+				*target = row[i].(string)
+			}
+		case **string:
+			if row[i] == nil {
+				*target = nil
+			} else {
+				value := row[i].(string)
+				*target = &value
+			}
+		case *int:
+			*target = row[i].(int)
+		case *int64:
+			*target = row[i].(int64)
+		case **int64:
+			if row[i] == nil {
+				*target = nil
+			} else {
+				value := row[i].(int64)
+				*target = &value
+			}
+		case *bool:
+			*target = row[i].(bool)
+		case *[]byte:
+			if row[i] == nil {
+				*target = nil
+			} else {
+				*target = append([]byte(nil), row[i].([]byte)...)
+			}
+		case *time.Time:
+			*target = row[i].(time.Time)
+		case **time.Time:
+			if row[i] == nil {
+				*target = nil
+			} else {
+				value := row[i].(time.Time)
+				*target = &value
+			}
+		default:
+			return errors.New("unsupported scan destination")
+		}
+	}
+
+	return nil
+}
+
+func (r *fakeRows) Values() ([]any, error) {
+	return nil, nil
+}
+
+func (r *fakeRows) RawValues() [][]byte {
+	return nil
+}
+
+func (r *fakeRows) Conn() *pgx.Conn {
+	return nil
+}
+
 func (r *fakeBatchResults) Exec() (pgconn.CommandTag, error) {
 	r.execCalls++
 	if r.execErrAt > 0 && r.execCalls == r.execErrAt {
@@ -558,5 +658,153 @@ func TestCloneBytesReturnsIndependentCopy(t *testing.T) {
 
 	if cloneBytes(nil) != nil {
 		t.Fatal("expected nil input to produce nil output")
+	}
+}
+
+func TestRepositoryListReportRowsSuccess(t *testing.T) {
+	t.Parallel()
+
+	rowCount := int64(2)
+	repo := newRepositoryWithDB(nil, &fakeDB{
+		queryFn: func(_ context.Context, _ string, _ ...any) (pgx.Rows, error) {
+			return &fakeRows{
+				rows: [][]any{
+					{
+						"demo_files",
+						"files",
+						"people.csv",
+						"file",
+						"/tmp/people.csv",
+						"/tmp/people.csv",
+						"People dataset",
+						rowCount,
+						"profiled",
+						"full_name",
+						"string",
+						"STRING",
+						true,
+						"Full person name",
+						2,
+					},
+				},
+			}, nil
+		},
+	})
+
+	rows, err := repo.ListReportRows(context.Background(), 1)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(rows) != 1 {
+		t.Fatalf("expected 1 row, got %d", len(rows))
+	}
+	if rows[0].SourceName != "demo_files" || rows[0].ColumnNormalizedType != types.CanonicalTypeString {
+		t.Fatalf("unexpected row: %+v", rows[0])
+	}
+	if rows[0].DatasetRowCount == nil || *rows[0].DatasetRowCount != rowCount {
+		t.Fatalf("unexpected row count: %+v", rows[0].DatasetRowCount)
+	}
+}
+
+func TestRepositoryListReportRowsErrors(t *testing.T) {
+	t.Parallel()
+
+	repo := newRepositoryWithDB(nil, &fakeDB{
+		queryFn: func(_ context.Context, _ string, _ ...any) (pgx.Rows, error) {
+			return nil, errors.New("query failed")
+		},
+	})
+	if _, err := repo.ListReportRows(context.Background(), 1); err == nil {
+		t.Fatal("expected query error")
+	}
+
+	repo = newRepositoryWithDB(nil, &fakeDB{
+		queryFn: func(_ context.Context, _ string, _ ...any) (pgx.Rows, error) {
+			return &fakeRows{
+				rows: [][]any{{"demo"}},
+			}, nil
+		},
+	})
+	if _, err := repo.ListReportRows(context.Background(), 1); err == nil {
+		t.Fatal("expected scan error")
+	}
+
+	repo = newRepositoryWithDB(nil, &fakeDB{
+		queryFn: func(_ context.Context, _ string, _ ...any) (pgx.Rows, error) {
+			return &fakeRows{err: errors.New("iterate failed")}, nil
+		},
+	})
+	if _, err := repo.ListReportRows(context.Background(), 1); err == nil {
+		t.Fatal("expected rows iteration error")
+	}
+}
+
+func TestScanHelpersErrors(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		fn   func() error
+	}{
+		{name: "scanRun", fn: func() error {
+			_, err := scanRun(fakeRow{scanFn: func(dest ...any) error { return errors.New("boom") }}, "scan run")
+			return err
+		}},
+		{name: "scanRunSource", fn: func() error {
+			_, err := scanRunSource(fakeRow{scanFn: func(dest ...any) error { return errors.New("boom") }}, "scan run source")
+			return err
+		}},
+		{name: "scanDataset", fn: func() error {
+			_, err := scanDataset(fakeRow{scanFn: func(dest ...any) error { return errors.New("boom") }}, "scan dataset")
+			return err
+		}},
+		{name: "scanColumn", fn: func() error {
+			_, err := scanColumn(fakeRow{scanFn: func(dest ...any) error { return errors.New("boom") }}, "scan column")
+			return err
+		}},
+		{name: "scanColumnStat", fn: func() error {
+			_, err := scanColumnStat(fakeRow{scanFn: func(dest ...any) error { return errors.New("boom") }}, "scan stat")
+			return err
+		}},
+	} {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			if err := tc.fn(); err == nil {
+				t.Fatal("expected error")
+			}
+		})
+	}
+}
+
+func TestNullableHelpers(t *testing.T) {
+	t.Parallel()
+
+	text := "x"
+	if got := nullableString(&text); got != "x" {
+		t.Fatalf("unexpected nullableString: %#v", got)
+	}
+	if got := nullableString(nil); got != nil {
+		t.Fatalf("expected nil string, got %#v", got)
+	}
+
+	now := time.Now()
+	if got := nullableTime(&now); got != now {
+		t.Fatalf("unexpected nullableTime: %#v", got)
+	}
+	if got := nullableTime(nil); got != nil {
+		t.Fatalf("expected nil time, got %#v", got)
+	}
+
+	count := int64(7)
+	if got := nullableInt64(&count); got != int64(7) {
+		t.Fatalf("unexpected nullableInt64: %#v", got)
+	}
+	if got := nullableInt64(nil); got != nil {
+		t.Fatalf("expected nil int64, got %#v", got)
+	}
+
+	if got := marshalJSONValue(nil); got != nil {
+		t.Fatalf("expected nil marshalJSONValue, got %#v", got)
 	}
 }

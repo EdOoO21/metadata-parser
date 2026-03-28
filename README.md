@@ -58,7 +58,14 @@ docker compose exec catalog /app/catalog run --config /app/demo/config/files-onl
 docker compose exec catalog /app/catalog report --config /app/demo/config/files-only.yaml --run-id 1
 ```
 
-### 4. Остановить сервис
+### 4. Выполнить второй `run` и сравнить два запуска
+
+```bash
+docker compose exec catalog /app/catalog run --config /app/demo/config/files-only.yaml
+docker compose exec catalog /app/catalog diff --config /app/demo/config/files-only.yaml --from-run-id 1 --to-run-id 2
+```
+
+### 5. Остановить сервис
 
 ```bash
 docker compose down -v
@@ -73,6 +80,7 @@ docker compose -f ./test/e2e/docker-compose.yml up -d catalog_db demo_api
 docker compose -f ./test/e2e/docker-compose.yml --profile migrate up catalog_db_migrate
 go run ./cmd/catalog run --config ./demo/config/demo.yaml
 go run ./cmd/catalog report --config ./demo/config/demo.yaml --run-id 1
+go run ./cmd/catalog run --config ./demo/config/demo.yaml
 go run ./cmd/catalog diff --config ./demo/config/demo.yaml --from-run-id 1 --to-run-id 2
 docker compose -f ./test/e2e/docker-compose.yml down -v
 ```

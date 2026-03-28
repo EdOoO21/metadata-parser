@@ -72,7 +72,7 @@ func (s *reportRepoStub) ListReportRows(ctx context.Context, runID int64) ([]app
 	return s.rows, nil
 }
 
-func TestReportCatalogUseCase_RendersMarkdownAndCSV(t *testing.T) {
+func TestReportCatalogUseCase_RendersMarkdownHTMLAndCSV(t *testing.T) {
 	t.Parallel()
 
 	rowCount := int64(2)
@@ -109,7 +109,7 @@ func TestReportCatalogUseCase_RendersMarkdownAndCSV(t *testing.T) {
 				DatasetLocation:      "/tmp/people.csv",
 				DatasetRowCount:      &rowCount,
 				DatasetProfileStatus: types.ProfileStatusProfiled,
-				ColumnName:           "name",
+				ColumnName:           "full_name",
 				ColumnOriginalType:   "string",
 				ColumnNormalizedType: types.CanonicalTypeString,
 				ColumnIsNullable:     true,
@@ -133,8 +133,32 @@ func TestReportCatalogUseCase_RendersMarkdownAndCSV(t *testing.T) {
 	if !strings.Contains(got.Markdown, "## Source: demo_files (`files`)") {
 		t.Fatalf("markdown does not contain source header: %s", got.Markdown)
 	}
-	if !strings.Contains(got.Markdown, "| 2 | name | string | STRING | yes |  |") {
+	if !strings.Contains(got.Markdown, "| 2 | full_name | string | STRING | yes |  |") {
 		t.Fatalf("markdown does not contain column row: %s", got.Markdown)
+	}
+	if !strings.Contains(got.Markdown, "## Potentially Sensitive Fields") {
+		t.Fatalf("markdown does not contain sensitive section: %s", got.Markdown)
+	}
+	if !strings.Contains(got.Markdown, "| demo_files | people.csv | full_name | person_name |") {
+		t.Fatalf("markdown does not contain sensitive row: %s", got.Markdown)
+	}
+	if !strings.Contains(got.HTML, "<h1>Catalog Report for Run 42</h1>") {
+		t.Fatalf("html does not contain run header: %s", got.HTML)
+	}
+	if !strings.Contains(got.HTML, "Source: demo_files") {
+		t.Fatalf("html does not contain source header: %s", got.HTML)
+	}
+	if !strings.Contains(got.HTML, "<table>") {
+		t.Fatalf("html does not contain table: %s", got.HTML)
+	}
+	if !strings.Contains(got.HTML, "<td>full_name</td>") {
+		t.Fatalf("html does not contain column row: %s", got.HTML)
+	}
+	if !strings.Contains(got.HTML, "Potentially Sensitive Fields") {
+		t.Fatalf("html does not contain sensitive section: %s", got.HTML)
+	}
+	if len(got.SensitiveFields) != 1 {
+		t.Fatalf("expected one sensitive field, got %d", len(got.SensitiveFields))
 	}
 
 	csvOutput := string(got.CSV)
@@ -169,6 +193,12 @@ func TestReportCatalogUseCase_EmptyRunRendersMessage(t *testing.T) {
 
 	if !strings.Contains(got.Markdown, "Датасеты для этого запуска не найдены.") {
 		t.Fatalf("unexpected markdown: %s", got.Markdown)
+	}
+	if !strings.Contains(got.HTML, "Датасеты для этого запуска не найдены.") {
+		t.Fatalf("unexpected html: %s", got.HTML)
+	}
+	if len(got.SensitiveFields) != 0 {
+		t.Fatalf("expected no sensitive fields, got %d", len(got.SensitiveFields))
 	}
 	if string(got.CSV) != "source_name,source_kind,dataset_name,dataset_kind,dataset_key,dataset_location,dataset_comment,dataset_row_count,dataset_profile_status,column_ordinal,column_name,column_original_type,column_normalized_type,column_is_nullable,column_comment\n" {
 		t.Fatalf("unexpected csv output: %q", string(got.CSV))

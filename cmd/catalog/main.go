@@ -16,9 +16,17 @@ import (
 	"github.com/EdOoO21/metadata-parser/internal/infrastructure/db/postgres"
 	"github.com/EdOoO21/metadata-parser/internal/infrastructure/logging"
 	"github.com/EdOoO21/metadata-parser/internal/settings"
+	"github.com/spf13/cobra"
 )
 
 func main() {
+	if err := newRootCmd().Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func newRootCmd() *cobra.Command {
 	logger := logging.NewLogger()
 	configLoader := settings.NewLoader()
 	catalogOpener := postgres.NewRepositoryOpener()
@@ -39,14 +47,11 @@ func main() {
 	reportCatalogUseCase := reportapp.NewReportCatalogUseCase()
 	diffCatalogUseCase := diffapp.NewDiffCatalogUseCase()
 
-	if err := cli.NewRootCmd(cli.Dependencies{
+	return cli.NewRootCmd(cli.Dependencies{
 		ConfigLoader:         configLoader,
 		CatalogOpener:        catalogOpener,
 		RunCatalogUseCase:    runCatalogUseCase,
 		ReportCatalogUseCase: reportCatalogUseCase,
 		DiffCatalogUseCase:   diffCatalogUseCase,
-	}).Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	})
 }

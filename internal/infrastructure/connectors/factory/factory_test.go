@@ -157,4 +157,131 @@ func TestFactoryForSource_ReturnsConfiguredNetworkScanners(t *testing.T) {
 	}
 }
 
+func TestFactoryForSource_ErrorCases(t *testing.T) {
+	t.Parallel()
+
+	f := New(nil, nil, nil, nil)
+
+	if _, err := f.ForSource(settings.SourceConfig{Name: "pg", Kind: "postgres"}); err == nil {
+		t.Fatal("expected missing postgres scanner error")
+	}
+	if _, err := f.ForSource(settings.SourceConfig{Name: "api", Kind: "rest"}); err == nil {
+		t.Fatal("expected missing rest scanner error")
+	}
+	if _, err := f.ForSource(settings.SourceConfig{Name: "x", Kind: "unknown"}); err == nil {
+		t.Fatal("expected unsupported kind error")
+	}
+
+	tmpDir := t.TempDir()
+	txtPath := filepath.Join(tmpDir, "notes.txt")
+	if err := os.WriteFile(txtPath, []byte("hello"), 0o644); err != nil {
+		t.Fatalf("write txt: %v", err)
+	}
+	if _, err := f.ForSource(settings.SourceConfig{
+		Name: "txt",
+		Kind: "files",
+		Config: settings.SourceConfigDetails{
+			Path: txtPath,
+		},
+	}); err == nil {
+		t.Fatal("expected unsupported extension error")
+	}
+
+	if _, err := f.ForSource(settings.SourceConfig{
+		Name: "dir",
+		Kind: "files",
+		Config: settings.SourceConfigDetails{
+			Path: tmpDir,
+		},
+	}); err == nil {
+		t.Fatal("expected no file scanners configured error")
+	}
+}
+
+func TestResolveFilesPathAndScopedScanner(t *testing.T) {
+	t.Parallel()
+
+	resolved, err := resolveFilesPath("")
+	if err != nil || resolved != "" {
+		t.Fatalf("expected empty path resolution, got %q %v", resolved, err)
+	}
+
+	tmpDir := t.TempDir()
+	csvPath := filepath.Join(tmpDir, "people.csv")
+	if err := os.WriteFile(csvPath, []byte("id\n1\n"), 0o644); err != nil {
+		t.Fatalf("write csv: %v", err)
+	}
+
+	resolved, err = resolveFilesPath("file://" + csvPath)
+	if err != nil {
+		t.Fatalf("resolve file url: %v", err)
+	}
+	if resolved == "" {
+		t.Fatal("expected resolved path")
+	}
+
+	inner := &stubScanner{result: &contracts.SourceScanResult{Datasets: []contracts.ScannedDataset{{}}}}
+	scanner := scopedFilesScanner{scanner: inner, extension: ".csv"}
+	if _, err := scanner.ParseSource(context.Background(), settings.SourceConfig{
+		Name: "csv",
+		Kind: "files",
+		Config: settings.SourceConfigDetails{
+			Path: csvPath,
+		},
+	}); err != nil {
+		t.Fatalf("unexpected scoped scanner error: %v", err)
+	}
+
+	if _, err := scanner.ParseSource(context.Background(), settings.SourceConfig{
+		Name: "csv",
+		Kind: "files",
+		Config: settings.SourceConfigDetails{
+			Path: tmpDir,
+		},
+	}); err != nil {
+		t.Fatalf("unexpected directory scoped scanner error: %v", err)
+	}
+
+	parquetPath := filepath.Join(tmpDir, "events.parquet")
+	if err := os.WriteFile(parquetPath, []byte("PAR1"), 0o644); err != nil {
+		t.Fatalf("write parquet: %v", err)
+	}
+	if _, err := scanner.ParseSource(context.Background(), settings.SourceConfig{
+		Name: "csv",
+		Kind: "files",
+		Config: settings.SourceConfigDetails{
+			Path: parquetPath,
+		},
+	}); err == nil {
+		t.Fatal("expected extension mismatch error")
+	}
+}
+
+func TestCompositeScanner_ErrorPaths(t *testing.T) {
+	t.Parallel()
+
+	scanner := compositeScanner{
+		sourceKind: "files",
+		scanners: []appports.SourceScanner{
+			&stubScanner{err: os.ErrNotExist},
+			&stubScanner{err: os.ErrPermission},
+		},
+	}
+	if _, err := scanner.ParseSource(context.Background(), settings.SourceConfig{
+		Name:   "files-source",
+		Kind:   "files",
+		Config: settings.SourceConfigDetails{Path: "."},
+	}); err == nil {
+		t.Fatal("expected no datasets error")
+	}
+}
+
+func TestResolveFilesPath_InvalidFileURL(t *testing.T) {
+	t.Parallel()
+
+	if _, err := resolveFilesPath("file://%zz"); err == nil {
+		t.Fatal("expected invalid file url error")
+	}
+}
+
 var _ appports.SourceScanner = (*stubScanner)(nil)

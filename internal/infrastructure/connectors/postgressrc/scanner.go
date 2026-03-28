@@ -17,6 +17,18 @@ import (
 
 type Scanner struct{}
 
+type discoveryRow struct {
+	schemaName     string
+	datasetName    string
+	datasetKind    string
+	datasetComment *string
+	columnName     string
+	columnType     string
+	columnNullable bool
+	columnComment  *string
+	ordinal        int
+}
+
 func NewScanner() *Scanner {
 	return &Scanner{}
 }
@@ -39,89 +51,39 @@ func (s *Scanner) ParseSource(ctx context.Context, src settings.SourceConfig) (*
 	}
 	defer rows.Close()
 
-	datasets := make(map[string]*contracts.ScannedDataset)
-	order := make([]string, 0, 32)
+	discoveryRows := make([]discoveryRow, 0, 64)
 
 	for rows.Next() {
-		var schemaName string
-		var datasetName string
-		var datasetKind string
-		var datasetComment *string
-		var columnName string
-		var columnType string
-		var columnNullable bool
-		var columnComment *string
-		var ordinal int
+		var row discoveryRow
 
 		if err := rows.Scan(
-			&schemaName,
-			&datasetName,
-			&datasetKind,
-			&datasetComment,
-			&columnName,
-			&columnType,
-			&columnNullable,
-			&columnComment,
-			&ordinal,
+			&row.schemaName,
+			&row.datasetName,
+			&row.datasetKind,
+			&row.datasetComment,
+			&row.columnName,
+			&row.columnType,
+			&row.columnNullable,
+			&row.columnComment,
+			&row.ordinal,
 		); err != nil {
 			return nil, fmt.Errorf("scan postgres schema row: %w", err)
 		}
-
-		key := schemaName + "." + datasetName
-		if _, ok := datasets[key]; !ok {
-			metadataJSON, err := json.Marshal(map[string]any{
-				"schema": schemaName,
-			})
-			if err != nil {
-				return nil, fmt.Errorf("marshal dataset metadata: %w", err)
-			}
-
-			order = append(order, key)
-			datasets[key] = &contracts.ScannedDataset{
-				Dataset: model.Dataset{
-					Kind:          mapDatasetKind(datasetKind),
-					DatasetKey:    key,
-					Name:          datasetName,
-					Location:      key,
-					Comment:       datasetComment,
-					DiscoveredAt:  time.Now().UTC(),
-					ProfileStatus: types.ProfileStatusDiscoveredOnly,
-					MetadataJSON:  metadataJSON,
-				},
-				Columns: nil,
-			}
-		}
-
-		dataset := datasets[key]
-		dataset.Columns = append(dataset.Columns, contracts.ScannedColumn{
-			Column: model.Column{
-				Name:            columnName,
-				OriginalType:    columnType,
-				NormalizedType:  shared.NormalizeType(columnType),
-				IsNullable:      columnNullable,
-				Comment:         columnComment,
-				OrdinalPosition: ordinal,
-			},
-		})
+		discoveryRows = append(discoveryRows, row)
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate postgres schema rows: %w", err)
 	}
 
-	scannedDatasets := make([]contracts.ScannedDataset, 0, len(order))
-	for _, key := range order {
-		dataset := datasets[key]
-		if err := profileDataset(ctx, pool, dataset); err != nil {
-			errMessage := err.Error()
-			dataset.Dataset.ProfileStatus = types.ProfileStatusFailed
-			dataset.Dataset.ProfileError = &errMessage
-		} else {
-			dataset.Dataset.ProfileStatus = types.ProfileStatusProfiled
-			dataset.Dataset.ProfileError = nil
-		}
+	scannedDatasets, err := buildDiscoveryDatasets(discoveryRows, time.Now().UTC())
+	if err != nil {
+		return nil, err
+	}
 
-		scannedDatasets = append(scannedDatasets, *dataset)
+	for i := range scannedDatasets {
+		profileErr := profileDataset(ctx, pool, &scannedDatasets[i])
+		applyProfileStatus(&scannedDatasets[i], profileErr)
 	}
 
 	return &contracts.SourceScanResult{
@@ -132,6 +94,68 @@ func (s *Scanner) ParseSource(ctx context.Context, src settings.SourceConfig) (*
 		EffectiveConfigJSON: effectiveConfigJSON,
 		Datasets:            scannedDatasets,
 	}, nil
+}
+
+func buildDiscoveryDatasets(rows []discoveryRow, discoveredAt time.Time) ([]contracts.ScannedDataset, error) {
+	datasets := make(map[string]*contracts.ScannedDataset)
+	order := make([]string, 0, len(rows))
+
+	for _, row := range rows {
+		key := row.schemaName + "." + row.datasetName
+		if _, ok := datasets[key]; !ok {
+			metadataJSON, err := json.Marshal(map[string]any{
+				"schema": row.schemaName,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("marshal dataset metadata: %w", err)
+			}
+
+			order = append(order, key)
+			datasets[key] = &contracts.ScannedDataset{
+				Dataset: model.Dataset{
+					Kind:          mapDatasetKind(row.datasetKind),
+					DatasetKey:    key,
+					Name:          row.datasetName,
+					Location:      key,
+					Comment:       row.datasetComment,
+					DiscoveredAt:  discoveredAt,
+					ProfileStatus: types.ProfileStatusDiscoveredOnly,
+					MetadataJSON:  metadataJSON,
+				},
+			}
+		}
+
+		dataset := datasets[key]
+		dataset.Columns = append(dataset.Columns, contracts.ScannedColumn{
+			Column: model.Column{
+				Name:            row.columnName,
+				OriginalType:    row.columnType,
+				NormalizedType:  shared.NormalizeType(row.columnType),
+				IsNullable:      row.columnNullable,
+				Comment:         row.columnComment,
+				OrdinalPosition: row.ordinal,
+			},
+		})
+	}
+
+	result := make([]contracts.ScannedDataset, 0, len(order))
+	for _, key := range order {
+		result = append(result, *datasets[key])
+	}
+
+	return result, nil
+}
+
+func applyProfileStatus(dataset *contracts.ScannedDataset, err error) {
+	if err != nil {
+		errMessage := err.Error()
+		dataset.Dataset.ProfileStatus = types.ProfileStatusFailed
+		dataset.Dataset.ProfileError = &errMessage
+		return
+	}
+
+	dataset.Dataset.ProfileStatus = types.ProfileStatusProfiled
+	dataset.Dataset.ProfileError = nil
 }
 
 func mapDatasetKind(value string) types.DatasetKind {
