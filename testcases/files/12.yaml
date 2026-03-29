@@ -1,0 +1,11 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: files_case_12_complex_mixed_depths
+    kind: files
+    config:
+      path: ./demo/files/test_12
+      max_depth: 2

@@ -1,0 +1,11 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: diff_files_case_02
+    kind: files
+    config:
+      path: ./demo/files/diff/2/current
+      max_depth: 2

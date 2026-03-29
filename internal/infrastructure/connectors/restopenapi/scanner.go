@@ -159,7 +159,7 @@ func buildColumnsFromSchema(schema *openAPISchema, components openAPIComponents)
 			Column: model.Column{
 				Name:            name,
 				OriginalType:    firstNonEmpty(property.Type, inferTypeFromSchema(property)),
-				NormalizedType:  shared.NormalizeType(firstNonEmpty(property.Type, inferTypeFromSchema(property))),
+				NormalizedType:  normalizeRESTSchemaType(property),
 				IsNullable:      !isRequired || property.Nullable,
 				Comment:         commentPtr,
 				OrdinalPosition: i + 1,
@@ -213,6 +213,22 @@ func inferTypeFromSchema(schema *openAPISchema) string {
 		return "object"
 	}
 	return "string"
+}
+
+func normalizeRESTSchemaType(schema *openAPISchema) types.CanonicalType {
+	if schema == nil {
+		return types.CanonicalTypeString
+	}
+
+	sourceType := firstNonEmpty(schema.Type, inferTypeFromSchema(schema))
+	if sourceType == "string" {
+		switch strings.TrimSpace(strings.ToLower(schema.Format)) {
+		case "date", "date-time":
+			return types.CanonicalTypeTimestamp
+		}
+	}
+
+	return shared.NormalizeType(sourceType)
 }
 
 func joinURL(baseURL, path string) string {
@@ -285,6 +301,7 @@ type openAPISchema struct {
 	Title       string                    `json:"title"`
 	Description string                    `json:"description"`
 	Type        string                    `json:"type"`
+	Format      string                    `json:"format"`
 	Nullable    bool                      `json:"nullable"`
 	Required    []string                  `json:"required"`
 	Properties  map[string]*openAPISchema `json:"properties"`

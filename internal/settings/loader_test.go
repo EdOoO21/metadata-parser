@@ -89,8 +89,11 @@ func TestValidateConfig_MissingCatalogAndUnsupportedKind(t *testing.T) {
 		Version: 1,
 		Sources: []SourceConfig{{Name: "src", Kind: "files", Config: SourceConfigDetails{Path: "./demo"}}},
 	}
-	if err := validateConfig(cfg); err == nil {
-		t.Fatal("expected missing catalog error")
+	if err := validateConfig(cfg); err != nil {
+		t.Fatalf("expected default catalog env to be applied, got error: %v", err)
+	}
+	if cfg.Catalog.DSNEnv != defaultCatalogDSNEnv {
+		t.Fatalf("expected default catalog env %q, got %q", defaultCatalogDSNEnv, cfg.Catalog.DSNEnv)
 	}
 
 	cfg = &AppConfig{

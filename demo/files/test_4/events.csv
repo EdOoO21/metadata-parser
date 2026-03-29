@@ -1,0 +1,7 @@
+event_id,event_name,enabled,created_at
+1,alpha,true,2026-03-20T10:00:00Z
+2,beta,false,2026-03-21T11:30:00Z
+3,gamma,yes,2026-03-22T12:45:00Z
+4,delta,no,2026-03-23T13:10:00Z
+5,epsilon,1,2026-03-24T15:00:00Z
+6,zeta,0,2026-03-25T16:20:00Z

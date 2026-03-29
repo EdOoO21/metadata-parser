@@ -1,0 +1,47 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: files_case_17_source_01
+    kind: files
+    config:
+      path: ./demo/files/test_1
+      max_depth: 0
+
+  - name: files_case_17_source_02
+    kind: files
+    config:
+      path: ./demo/files/test_4
+      max_depth: 0
+
+  - name: files_case_17_source_03
+    kind: files
+    config:
+      path: ./demo/files/test_6
+      max_depth: 1
+
+  - name: files_case_17_source_04
+    kind: files
+    config:
+      path: ./demo/files/test_8/ledger.parquet
+      max_depth: 0
+
+  - name: files_case_17_source_05
+    kind: files
+    config:
+      path: ./demo/files/test_9
+      max_depth: 2
+
+  - name: files_case_17_source_06
+    kind: files
+    config:
+      path: ./demo/files/test_10
+      max_depth: 2
+
+  - name: files_case_17_source_07
+    kind: files
+    config:
+      path: ./demo/files/test_11
+      max_depth: 2

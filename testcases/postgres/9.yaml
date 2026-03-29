@@ -1,0 +1,10 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: postgres_case_09_education
+    kind: postgres
+    config:
+      dsn_env: DEMO_PG_DSN

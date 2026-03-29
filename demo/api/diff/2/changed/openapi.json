@@ -1,0 +1,83 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API diff case 2 changed",
+    "version": "1.1.0"
+  },
+  "paths": {
+    "/products": {
+      "get": {
+        "summary": "Products",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["sku", "name", "price", "active"],
+                    "properties": {
+                      "sku": { "type": "string" },
+                      "name": { "type": "string" },
+                      "category": { "type": "string" },
+                      "price": { "type": "number" },
+                      "active": { "type": "boolean" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["status", "uptime_seconds", "checked_at"],
+                  "properties": {
+                    "status": { "type": "string" },
+                    "uptime_seconds": { "type": "integer" },
+                    "checked_at": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/warehouses": {
+      "get": {
+        "summary": "Warehouses",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["warehouse_id", "name", "region"],
+                    "properties": {
+                      "warehouse_id": { "type": "integer" },
+                      "name": { "type": "string" },
+                      "region": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

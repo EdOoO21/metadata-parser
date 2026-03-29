@@ -1,8 +1,6 @@
 coverage.*
 bin
 .vscode
-.env
-scripts
 guide.txt
-test
-demo
+demo/files/diff/*/current
+tmp/

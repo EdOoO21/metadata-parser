@@ -1,0 +1,14 @@
+{
+  "/products": [
+    { "sku": "SKU-100", "name": "Office Chair", "price": 12990.0, "active": true },
+    { "sku": "SKU-200", "name": "Desk Lamp", "price": 3490.0, "active": true }
+  ],
+  "/payments": [
+    { "payment_id": 7001, "order_id": 5001, "amount": 1250.5, "method": "card" },
+    { "payment_id": 7002, "order_id": 5002, "amount": 320.0, "method": "invoice" }
+  ],
+  "/health": {
+    "status": "ok",
+    "uptime_seconds": 1200
+  }
+}

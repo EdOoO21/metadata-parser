@@ -41,6 +41,15 @@ func TestBuildColumnsFromSchemaAndHelpers(t *testing.T) {
 	if columns[1].Column.Name != "id" || columns[1].Column.NormalizedType != types.CanonicalTypeNumber {
 		t.Fatalf("unexpected second column: %+v", columns[1].Column)
 	}
+	if got := normalizeRESTSchemaType(&openAPISchema{Type: "string", Format: "date-time"}); got != types.CanonicalTypeTimestamp {
+		t.Fatalf("unexpected normalized type for date-time: %s", got)
+	}
+	if got := normalizeRESTSchemaType(&openAPISchema{Type: "string", Format: "date"}); got != types.CanonicalTypeTimestamp {
+		t.Fatalf("unexpected normalized type for date: %s", got)
+	}
+	if got := normalizeRESTSchemaType(&openAPISchema{Type: "string"}); got != types.CanonicalTypeString {
+		t.Fatalf("unexpected normalized type for plain string: %s", got)
+	}
 
 	if got := inferTypeFromSchema(&openAPISchema{Items: &openAPISchema{Type: "string"}}); got != "array" {
 		t.Fatalf("unexpected inferred type: %s", got)

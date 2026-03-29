@@ -1,0 +1,23 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: files_case_15_source_a
+    kind: files
+    config:
+      path: ./demo/files/test_4
+      max_depth: 0
+
+  - name: files_case_15_source_b
+    kind: files
+    config:
+      path: ./demo/files/test_7/balances.csv
+      max_depth: 0
+
+  - name: files_case_15_source_c
+    kind: files
+    config:
+      path: ./demo/files/test_9
+      max_depth: 2

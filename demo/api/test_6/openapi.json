@@ -1,0 +1,19 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Demo API Case 6",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/users": { "get": { "summary": "Users", "responses": { "200": { "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object", "required": ["id", "name"], "properties": { "id": { "type": "integer" }, "name": { "type": "string" }, "active": { "type": "boolean" } } } } } } } } } },
+    "/orders": { "get": { "summary": "Orders", "responses": { "200": { "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object", "required": ["id", "amount"], "properties": { "id": { "type": "integer" }, "amount": { "type": "number" }, "status": { "type": "string" } } } } } } } } } },
+    "/payments": { "get": { "summary": "Payments", "responses": { "200": { "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object", "required": ["id", "method"], "properties": { "id": { "type": "integer" }, "method": { "type": "string" }, "paid_at": { "type": "string", "format": "date-time", "nullable": true } } } } } } } } } },
+    "/products": { "get": { "summary": "Products", "responses": { "200": { "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object", "required": ["sku", "price"], "properties": { "sku": { "type": "string" }, "price": { "type": "number" }, "active": { "type": "boolean" } } } } } } } } } },
+    "/suppliers": { "get": { "summary": "Suppliers", "responses": { "200": { "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object", "required": ["id", "company_name"], "properties": { "id": { "type": "integer" }, "company_name": { "type": "string" }, "country": { "type": "string" } } } } } } } } } },
+    "/invoices": { "get": { "summary": "Invoices", "responses": { "200": { "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object", "required": ["id", "customer_name"], "properties": { "id": { "type": "integer" }, "customer_name": { "type": "string" }, "total_amount": { "type": "number" } } } } } } } } } },
+    "/sessions": { "get": { "summary": "Sessions", "responses": { "200": { "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object", "required": ["id", "started_at"], "properties": { "id": { "type": "integer" }, "started_at": { "type": "string", "format": "date-time" }, "is_mobile": { "type": "boolean" } } } } } } } } } },
+    "/events": { "get": { "summary": "Events", "responses": { "200": { "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object", "required": ["id", "event_name"], "properties": { "id": { "type": "integer" }, "event_name": { "type": "string" }, "event_at": { "type": "string", "format": "date-time" } } } } } } } } } },
+    "/cities": { "get": { "summary": "Cities", "responses": { "200": { "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object", "required": ["code", "name"], "properties": { "code": { "type": "string" }, "name": { "type": "string" }, "population": { "type": "integer", "nullable": true } } } } } } } } } },
+    "/countries": { "get": { "summary": "Countries", "responses": { "200": { "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object", "required": ["code", "name"], "properties": { "code": { "type": "string" }, "name": { "type": "string" }, "active": { "type": "boolean" } } } } } } } } } }
+  }
+}

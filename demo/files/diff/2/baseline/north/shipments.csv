@@ -1,0 +1,4 @@
+shipment_id,sku,quantity,planned_date
+1,SKU-100,10,2026-03-10
+2,SKU-200,4,2026-03-11
+3,SKU-300,8,2026-03-12

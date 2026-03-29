@@ -1,0 +1,13 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: diff_api_case_01
+    kind: rest
+    config:
+      base_url: http://localhost:8081
+      discovery:
+        mode: openapi
+        openapi_url: http://localhost:8081/openapi.json

@@ -1,0 +1,4 @@
+customer_id,segment,lifetime_value,created_date
+100,enterprise,100000.50,2026-02-10
+101,mid-market,25000.00,2026-02-11
+102,small,1200.75,2026-02-12

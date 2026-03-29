@@ -1,0 +1,5 @@
+sku,warehouse,quantity,updated_at
+SKU-001,moscow,15,2026-02-01T10:00:00Z
+SKU-002,moscow,20,2026-02-01T10:05:00Z
+SKU-003,spb,7,2026-02-01T10:10:00Z
+SKU-004,ekb,13,2026-02-01T10:15:00Z

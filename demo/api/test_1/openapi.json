@@ -1,0 +1,63 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Demo API Case 1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/users": {
+      "get": {
+        "summary": "Users",
+        "description": "Basic user list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "name", "active", "created_at"],
+                    "properties": {
+                      "id": { "type": "integer", "description": "User id" },
+                      "name": { "type": "string", "description": "User name" },
+                      "active": { "type": "boolean", "description": "Active flag" },
+                      "created_at": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders": {
+      "get": {
+        "summary": "Orders",
+        "description": "Simple order list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "user_id", "amount", "status"],
+                    "properties": {
+                      "id": { "type": "integer", "description": "Order id" },
+                      "user_id": { "type": "integer", "description": "User id" },
+                      "amount": { "type": "number", "description": "Order amount" },
+                      "status": { "type": "string", "description": "Order status" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

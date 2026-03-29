@@ -1,0 +1,4 @@
+user_id,login,email,is_staff
+1,root,root@example.com,true
+2,analyst,analyst@example.com,false
+3,engineer,engineer@example.com,false

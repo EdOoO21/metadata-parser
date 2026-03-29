@@ -90,4 +90,20 @@ func TestScannerParseSource_ProfilesEndpoint(t *testing.T) {
 	if dataset.Columns[0].Stat == nil {
 		t.Fatal("expected column stats to be present")
 	}
+	var createdAtFound bool
+	for _, column := range dataset.Columns {
+		if column.Column.Name != "created_at" {
+			continue
+		}
+		createdAtFound = true
+		if column.Column.NormalizedType != types.CanonicalTypeTimestamp {
+			t.Fatalf("expected created_at to be TIMESTAMP, got %s", column.Column.NormalizedType)
+		}
+		if column.Stat == nil || column.Stat.MinValueJSON == nil || column.Stat.MaxValueJSON == nil {
+			t.Fatalf("expected timestamp stats for created_at, got %+v", column.Stat)
+		}
+	}
+	if !createdAtFound {
+		t.Fatal("expected created_at column to be present")
+	}
 }

@@ -1,0 +1,24 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: diff_mixed_case_02_files_a
+    kind: files
+    config:
+      path: ./demo/files/diff/2/current
+      max_depth: 2
+
+  - name: diff_mixed_case_02_postgres
+    kind: postgres
+    config:
+      dsn_env: DEMO_PG_DSN
+
+  - name: diff_mixed_case_02_api
+    kind: rest
+    config:
+      base_url: http://localhost:8082
+      discovery:
+        mode: openapi
+        openapi_url: http://localhost:8082/openapi.json

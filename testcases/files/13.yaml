@@ -1,0 +1,11 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: files_case_13_quoted_csv
+    kind: files
+    config:
+      path: ./demo/files/test_13
+      max_depth: 0

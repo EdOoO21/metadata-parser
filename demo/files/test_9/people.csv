@@ -1,0 +1,5 @@
+person_id,full_name,email,team
+1,Ivan Petrov,ivan.petrov@example.com,red
+2,Olga Sidorova,olga.sidorova@example.com,blue
+3,Sergey Ivanov,sergey.ivanov@example.com,red
+4,Anna Smirnova,anna.smirnova@example.com,green

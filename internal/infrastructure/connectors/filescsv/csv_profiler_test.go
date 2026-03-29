@@ -110,3 +110,33 @@ func TestCSVProfiler_AllNullColumnFallsBackToString(t *testing.T) {
 		t.Fatalf("unexpected stat: %#v", column.Stat)
 	}
 }
+
+func TestCSVProfiler_PhoneLikeValuesStayString(t *testing.T) {
+	t.Parallel()
+
+	profiler := NewCSVProfiler()
+	result := &CSVParseResult{
+		Headers: []string{"phone"},
+		Rows: []CSVRow{
+			{RecordNumber: 1, Values: map[string]string{"phone": "+79990000001"}},
+			{RecordNumber: 2, Values: map[string]string{"phone": "+79990000002"}},
+			{RecordNumber: 3, Values: map[string]string{"phone": ""}},
+		},
+	}
+
+	dataset, err := profiler.BuildDataset("/tmp/phones.csv", result, 10)
+	if err != nil {
+		t.Fatalf("BuildDataset returned error: %v", err)
+	}
+
+	column := dataset.Columns[0]
+	if column.Column.NormalizedType != types.CanonicalTypeString {
+		t.Fatalf("unexpected normalized type: %q", column.Column.NormalizedType)
+	}
+	if !column.Column.IsNullable {
+		t.Fatalf("expected nullable phone column")
+	}
+	if column.Stat == nil || column.Stat.NonNullCount != 2 || column.Stat.NullCount != 1 {
+		t.Fatalf("unexpected stat: %#v", column.Stat)
+	}
+}

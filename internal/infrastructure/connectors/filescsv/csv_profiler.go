@@ -160,11 +160,16 @@ func (s *detectTypeState) Observe(value string) {
 		s.allTimestamp = true
 	}
 
-	if _, err := strconv.ParseInt(value, 10, 64); err != nil {
+	if isLikelyPhoneValue(value) {
 		s.allInt = false
-	}
-	if _, err := strconv.ParseFloat(value, 64); err != nil {
 		s.allNumber = false
+	} else {
+		if _, err := strconv.ParseInt(value, 10, 64); err != nil {
+			s.allInt = false
+		}
+		if _, err := strconv.ParseFloat(value, 64); err != nil {
+			s.allNumber = false
+		}
 	}
 	if !isBooleanValue(value) {
 		s.allBoolean = false
@@ -191,6 +196,31 @@ func finalizeTypes(state detectTypeState) (string, types.CanonicalType) {
 	default:
 		return "string", types.CanonicalTypeString
 	}
+}
+
+func isLikelyPhoneValue(value string) bool {
+	trimmed := strings.TrimSpace(value)
+	if len(trimmed) < 8 || !strings.HasPrefix(trimmed, "+") {
+		return false
+	}
+
+	digitCount := 0
+	for i, r := range trimmed {
+		if i == 0 {
+			continue
+		}
+
+		switch {
+		case r >= '0' && r <= '9':
+			digitCount++
+		case r == ' ' || r == '-' || r == '(' || r == ')':
+			continue
+		default:
+			return false
+		}
+	}
+
+	return digitCount >= 7
 }
 
 func buildMinMaxJSON(values []string, canonicalType types.CanonicalType, state detectTypeState) ([]byte, []byte, error) {

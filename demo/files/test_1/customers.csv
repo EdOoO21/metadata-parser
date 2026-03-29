@@ -1,0 +1,6 @@
+customer_id,full_name,email,active,signup_at
+1,Alice Johnson,alice@example.com,true,2026-01-10T09:00:00Z
+2,Bob Smith,bob@example.com,false,2026-01-11T10:30:00Z
+3,Carol White,carol@example.com,true,2026-01-12T12:15:00Z
+4,David Black,david@example.com,true,2026-01-13T08:45:00Z
+5,Eva Stone,eva@example.com,false,2026-01-14T07:20:00Z

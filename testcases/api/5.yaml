@@ -1,0 +1,37 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: api_case_05_basic
+    kind: rest
+    config:
+      base_url: http://localhost:8081
+      discovery:
+        mode: openapi
+        openapi_url: http://localhost:8081/openapi.json
+
+  - name: api_case_05_sensitive
+    kind: rest
+    config:
+      base_url: http://localhost:8083
+      discovery:
+        mode: openapi
+        openapi_url: http://localhost:8083/openapi.json
+
+  - name: api_case_05_summary_objects
+    kind: rest
+    config:
+      base_url: http://localhost:8085
+      discovery:
+        mode: openapi
+        openapi_url: http://localhost:8085/openapi.json
+
+  - name: api_case_05_broad_mix
+    kind: rest
+    config:
+      base_url: http://localhost:8086
+      discovery:
+        mode: openapi
+        openapi_url: http://localhost:8086/openapi.json

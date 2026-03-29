@@ -1,0 +1,11 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: files_case_03_depth_two
+    kind: files
+    config:
+      path: ./demo/files/test_3
+      max_depth: 2

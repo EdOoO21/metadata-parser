@@ -1,0 +1,15 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: mixed_case_05_files_parquet_direct
+    kind: files
+    config:
+      path: ./demo/files/test_8/ledger.parquet
+
+  - name: mixed_case_05_postgres
+    kind: postgres
+    config:
+      dsn_env: DEMO_PG_DSN

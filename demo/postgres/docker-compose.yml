@@ -1,0 +1,25 @@
+services:
+  source_pg:
+    image: public.ecr.aws/docker/library/postgres:17
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: ${CATALOG_DB_USER}
+      POSTGRES_PASSWORD: ${CATALOG_DB_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD: trust
+      DEMO_PG_CASE: ${DEMO_PG_CASE:-}
+      DEMO_PG_MODE: ${DEMO_PG_MODE:-}
+    ports:
+      - "55433:5432"
+    volumes:
+      - demo_source_pg_data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d:ro
+      - ./:/demo-postgres:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+volumes:
+  demo_source_pg_data:

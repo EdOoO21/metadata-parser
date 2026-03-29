@@ -1,0 +1,11 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: files_case_07_single_csv
+    kind: files
+    config:
+      path: ./demo/files/test_7/balances.csv
+      max_depth: 0

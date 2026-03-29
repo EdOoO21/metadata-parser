@@ -1,0 +1,11 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: files_case_09_noise_and_nested
+    kind: files
+    config:
+      path: ./demo/files/test_9
+      max_depth: 2

@@ -1,0 +1,29 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: api_case_03_business_entities
+    kind: rest
+    config:
+      base_url: http://localhost:8082
+      discovery:
+        mode: openapi
+        openapi_url: http://localhost:8082/openapi.json
+
+  - name: api_case_03_sensitive_people
+    kind: rest
+    config:
+      base_url: http://localhost:8083
+      discovery:
+        mode: openapi
+        openapi_url: http://localhost:8083/openapi.json
+
+  - name: api_case_03_operational_analytics
+    kind: rest
+    config:
+      base_url: http://localhost:8084
+      discovery:
+        mode: openapi
+        openapi_url: http://localhost:8084/openapi.json

@@ -1,0 +1,18 @@
+{
+  "/summary": {
+    "service": "reporting-api",
+    "version": "2.1.0",
+    "requests_total": 182345,
+    "generated_at": "2026-03-15T11:00:00Z"
+  },
+  "/tasks": [
+    { "id": 1, "title": "prepare report", "done": true, "assignee": "Alice" },
+    { "id": 2, "title": "check alerting", "done": false, "assignee": null },
+    { "id": 3, "title": "sync warehouse", "done": true, "assignee": "Bob" }
+  ],
+  "/health": {
+    "status": "ok",
+    "checked_at": "2026-03-15T11:05:00Z",
+    "degraded": false
+  }
+}

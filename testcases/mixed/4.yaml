@@ -1,0 +1,30 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: mixed_case_04_files_profile
+    kind: files
+    config:
+      path: ./demo/files/test_4
+      max_depth: 0
+
+  - name: mixed_case_04_files_names
+    kind: files
+    config:
+      path: ./demo/files/test_6
+      max_depth: 1
+
+  - name: mixed_case_04_postgres
+    kind: postgres
+    config:
+      dsn_env: DEMO_PG_DSN
+
+  - name: mixed_case_04_api
+    kind: rest
+    config:
+      base_url: http://localhost:8083
+      discovery:
+        mode: openapi
+        openapi_url: http://localhost:8083/openapi.json

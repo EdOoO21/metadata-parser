@@ -1,0 +1,42 @@
+{
+  "/users": [
+    { "id": 1, "name": "Alice", "active": true },
+    { "id": 2, "name": "Bob", "active": false }
+  ],
+  "/orders": [
+    { "id": 1001, "amount": 120.5, "status": "paid" },
+    { "id": 1002, "amount": 80.0, "status": "new" }
+  ],
+  "/payments": [
+    { "id": 2001, "method": "card", "paid_at": "2026-03-01T12:00:00Z" },
+    { "id": 2002, "method": "cash", "paid_at": null }
+  ],
+  "/products": [
+    { "sku": "A-1", "price": 10.0, "active": true },
+    { "sku": "B-2", "price": 20.5, "active": false }
+  ],
+  "/suppliers": [
+    { "id": 3001, "company_name": "North Trade", "country": "RU" },
+    { "id": 3002, "company_name": "Blue River", "country": "DE" }
+  ],
+  "/invoices": [
+    { "id": 4001, "customer_name": "North Wind LLC", "total_amount": 150000.0 },
+    { "id": 4002, "customer_name": "Blue River Ltd", "total_amount": 42000.0 }
+  ],
+  "/sessions": [
+    { "id": 5001, "started_at": "2026-03-03T08:00:00Z", "is_mobile": true },
+    { "id": 5002, "started_at": "2026-03-03T09:00:00Z", "is_mobile": false }
+  ],
+  "/events": [
+    { "id": 6001, "event_name": "app_open", "event_at": "2026-03-03T08:00:03Z" },
+    { "id": 6002, "event_name": "purchase", "event_at": "2026-03-03T08:20:10Z" }
+  ],
+  "/cities": [
+    { "code": "MOW", "name": "Moscow", "population": 13000000 },
+    { "code": "KZN", "name": "Kazan", "population": 1250000 }
+  ],
+  "/countries": [
+    { "code": "RU", "name": "Russia", "active": true },
+    { "code": "DE", "name": "Germany", "active": true }
+  ]
+}

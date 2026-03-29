@@ -1,0 +1,114 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Demo API Case 3",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/people": {
+      "get": {
+        "summary": "People",
+        "description": "Potentially sensitive person dataset",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "fio"],
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "fio": { "type": "string", "description": "Full person name" },
+                      "birth_date": { "type": "string", "format": "date", "nullable": true },
+                      "city": { "type": "string", "nullable": true }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents": {
+      "get": {
+        "summary": "Documents",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "passport_number"],
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "passport_number": { "type": "string", "description": "Passport number" },
+                      "issued_at": { "type": "string", "format": "date" },
+                      "valid_until": { "type": "string", "format": "date", "nullable": true }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contacts": {
+      "get": {
+        "summary": "Contacts",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "phone"],
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "phone": { "type": "string" },
+                      "email": { "type": "string", "nullable": true },
+                      "address": { "type": "string", "nullable": true }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profiles": {
+      "get": {
+        "summary": "Profiles",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "active"],
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "active": { "type": "boolean" },
+                      "snils": { "type": "string", "nullable": true },
+                      "inn": { "type": "string", "nullable": true }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

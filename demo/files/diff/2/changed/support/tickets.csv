@@ -1,0 +1,3 @@
+ticket_id,shipment_id,status,opened_at
+501,2,investigating,2026-03-11T16:20:00Z
+502,3,resolved,2026-03-13T13:00:00Z

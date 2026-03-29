@@ -1,0 +1,11 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: files_case_01_flat_mix
+    kind: files
+    config:
+      path: ./demo/files/test_1
+      max_depth: 0

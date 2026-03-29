@@ -9,6 +9,8 @@ import (
 
 type Loader struct{}
 
+const defaultCatalogDSNEnv = "CATALOG_DSN"
+
 func NewLoader() *Loader {
 	return &Loader{}
 }
@@ -36,7 +38,7 @@ func validateConfig(cfg *AppConfig) error {
 		return fmt.Errorf("неподдерживаемая версия конфига: %d", cfg.Version)
 	}
 	if cfg.Catalog.DSNEnv == "" {
-		return fmt.Errorf("поле catalog.dsn_env обязательно")
+		cfg.Catalog.DSNEnv = defaultCatalogDSNEnv
 	}
 	if len(cfg.Sources) == 0 {
 		return fmt.Errorf("нужно указать хотя бы один источник")

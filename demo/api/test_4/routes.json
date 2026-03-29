@@ -1,0 +1,30 @@
+{
+  "/sessions": [
+    { "id": 1, "user_id": 1001, "started_at": "2026-03-01T10:00:00Z", "ended_at": "2026-03-01T10:45:00Z", "is_mobile": true },
+    { "id": 2, "user_id": 1002, "started_at": "2026-03-01T11:15:00Z", "ended_at": null, "is_mobile": false }
+  ],
+  "/events": [
+    { "id": 1, "session_id": 1, "event_name": "app_open", "screen_name": "home", "event_at": "2026-03-01T10:00:03Z" },
+    { "id": 2, "session_id": 1, "event_name": "purchase", "screen_name": "checkout", "event_at": "2026-03-01T10:30:15Z" },
+    { "id": 3, "session_id": 2, "event_name": "page_view", "screen_name": "pricing", "event_at": "2026-03-01T11:18:00Z" }
+  ],
+  "/devices": [
+    { "id": 1, "platform": "ios", "version": "17.2", "manufacturer": "Apple" },
+    { "id": 2, "platform": "android", "version": "14", "manufacturer": "Samsung" },
+    { "id": 3, "platform": "web", "version": "124", "manufacturer": null }
+  ],
+  "/metrics": [
+    { "name": "active_users", "metric_value": 1540, "captured_at": "2026-03-01T12:00:00Z", "region": "eu" },
+    { "name": "conversion_rate", "metric_value": 3.14, "captured_at": "2026-03-01T12:00:00Z", "region": "eu" },
+    { "name": "error_rate", "metric_value": 0.12, "captured_at": "2026-03-01T12:00:00Z", "region": null }
+  ],
+  "/regions": [
+    { "code": "eu", "name": "Europe", "active": true },
+    { "code": "apac", "name": "Asia Pacific", "active": true },
+    { "code": "latam", "name": "Latin America", "active": false }
+  ],
+  "/alerts": [
+    { "id": 1, "severity": "high", "message": "Latency spike", "triggered_at": "2026-03-01T12:10:00Z" },
+    { "id": 2, "severity": "medium", "message": null, "triggered_at": "2026-03-01T12:40:00Z" }
+  ]
+}

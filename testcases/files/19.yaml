@@ -1,0 +1,77 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: files_case_19_source_01
+    kind: files
+    config:
+      path: ./demo/files/test_1/orders.parquet
+      max_depth: 0
+
+  - name: files_case_19_source_02
+    kind: files
+    config:
+      path: ./demo/files/test_2
+      max_depth: 1
+
+  - name: files_case_19_source_03
+    kind: files
+    config:
+      path: ./demo/files/test_3/stats.parquet
+      max_depth: 0
+
+  - name: files_case_19_source_04
+    kind: files
+    config:
+      path: ./demo/files/test_4
+      max_depth: 0
+
+  - name: files_case_19_source_05
+    kind: files
+    config:
+      path: ./demo/files/test_5
+      max_depth: 0
+
+  - name: files_case_19_source_06
+    kind: files
+    config:
+      path: ./demo/files/test_6
+      max_depth: 1
+
+  - name: files_case_19_source_07
+    kind: files
+    config:
+      path: ./demo/files/test_7/balances.csv
+      max_depth: 0
+
+  - name: files_case_19_source_08
+    kind: files
+    config:
+      path: ./demo/files/test_8
+      max_depth: 0
+
+  - name: files_case_19_source_09
+    kind: files
+    config:
+      path: ./demo/files/test_9
+      max_depth: 2
+
+  - name: files_case_19_source_10
+    kind: files
+    config:
+      path: ./demo/files/test_10
+      max_depth: 2
+
+  - name: files_case_19_source_11
+    kind: files
+    config:
+      path: ./demo/files/test_11
+      max_depth: 2
+
+  - name: files_case_19_source_12
+    kind: files
+    config:
+      path: ./demo/files/test_13
+      max_depth: 0

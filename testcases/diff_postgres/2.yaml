@@ -1,0 +1,10 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: diff_postgres_case_02
+    kind: postgres
+    config:
+      dsn_env: DEMO_PG_DSN

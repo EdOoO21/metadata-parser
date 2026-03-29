@@ -1,0 +1,17 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: files_case_14_source_a
+    kind: files
+    config:
+      path: ./demo/files/test_1
+      max_depth: 0
+
+  - name: files_case_14_source_b
+    kind: files
+    config:
+      path: ./demo/files/test_8/ledger.parquet
+      max_depth: 0

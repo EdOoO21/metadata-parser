@@ -1,0 +1,5 @@
+day,visitors,bounce_rate,is_holiday
+2026-03-01,1234,0.42,false
+2026-03-02,980,0.38,false
+2026-03-03,1500,0.35,true
+2026-03-04,1111,0.41,false

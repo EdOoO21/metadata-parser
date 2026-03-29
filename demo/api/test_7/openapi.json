@@ -1,0 +1,135 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Demo API Case 9",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/products": {
+      "get": {
+        "summary": "Products collection",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["sku", "name", "price"],
+                    "properties": {
+                      "sku": { "type": "string" },
+                      "name": { "type": "string" },
+                      "price": { "type": "number" },
+                      "active": { "type": "boolean" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/{sku}": {
+      "get": {
+        "summary": "Product by sku",
+        "description": "Path parameter endpoint",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["sku", "name", "price"],
+                  "properties": {
+                    "sku": { "type": "string" },
+                    "name": { "type": "string" },
+                    "price": { "type": "number" },
+                    "active": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/warehouses": {
+      "get": {
+        "summary": "Warehouses collection",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "warehouse_name", "city"],
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "warehouse_name": { "type": "string" },
+                      "city": { "type": "string" },
+                      "capacity": { "type": "integer", "nullable": true }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/warehouses/{id}": {
+      "get": {
+        "summary": "Warehouse by id",
+        "description": "Path parameter endpoint",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["id", "warehouse_name", "city"],
+                  "properties": {
+                    "id": { "type": "integer" },
+                    "warehouse_name": { "type": "string" },
+                    "city": { "type": "string" },
+                    "capacity": { "type": "integer", "nullable": true }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/warehouses/{id}/stock": {
+      "get": {
+        "summary": "Warehouse stock",
+        "description": "Nested path parameter endpoint",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["sku", "quantity"],
+                    "properties": {
+                      "sku": { "type": "string" },
+                      "quantity": { "type": "integer" },
+                      "reserved": { "type": "integer", "nullable": true }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

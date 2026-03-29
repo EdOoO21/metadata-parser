@@ -1,0 +1,26 @@
+{
+  "/products": [
+    { "sku": "SKU-100", "name": "Office Chair", "price": 12990.0, "active": true },
+    { "sku": "SKU-101", "name": "Desk Lamp", "price": 3490.0, "active": true }
+  ],
+  "/products/SKU-100": {
+    "sku": "SKU-100",
+    "name": "Office Chair",
+    "price": 12990.0,
+    "active": true
+  },
+  "/warehouses": [
+    { "id": 1, "warehouse_name": "North Hub", "city": "Moscow", "capacity": 5000 },
+    { "id": 2, "warehouse_name": "East Hub", "city": "Kazan", "capacity": null }
+  ],
+  "/warehouses/1": {
+    "id": 1,
+    "warehouse_name": "North Hub",
+    "city": "Moscow",
+    "capacity": 5000
+  },
+  "/warehouses/1/stock": [
+    { "sku": "SKU-100", "quantity": 120, "reserved": 5 },
+    { "sku": "SKU-101", "quantity": 450, "reserved": 17 }
+  ]
+}

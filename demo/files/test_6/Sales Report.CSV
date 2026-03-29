@@ -1,0 +1,5 @@
+report_id,region,total_amount,generated_at
+1,north,1050.55,2026-03-15T07:00:00Z
+2,south,980.00,2026-03-15T07:00:00Z
+3,east,1450.75,2026-03-15T07:00:00Z
+4,west,1111.10,2026-03-15T07:00:00Z

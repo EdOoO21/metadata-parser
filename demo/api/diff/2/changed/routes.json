@@ -1,0 +1,15 @@
+{
+  "/products": [
+    { "sku": "SKU-100", "name": "Office Chair", "category": "furniture", "price": 12990.0, "active": true },
+    { "sku": "SKU-200", "name": "Desk Lamp", "category": "lighting", "price": 3490.0, "active": true }
+  ],
+  "/health": {
+    "status": "ok",
+    "uptime_seconds": 2400,
+    "checked_at": "2026-03-29T09:00:00Z"
+  },
+  "/warehouses": [
+    { "warehouse_id": 1, "name": "Moscow Hub", "region": "RU-MOW" },
+    { "warehouse_id": 2, "name": "Kazan Hub", "region": "RU-TA" }
+  ]
+}

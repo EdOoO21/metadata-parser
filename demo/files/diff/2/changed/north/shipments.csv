@@ -1,0 +1,4 @@
+shipment_id,sku,quantity,planned_date,delivered_at,receiver_phone
+1,SKU-100,10,2026-03-10,2026-03-11T09:00:00Z,+79990000001
+2,SKU-200,pending,2026-03-11,,+79990000002
+3,SKU-300,8,2026-03-12,2026-03-13T12:30:00Z,

@@ -1,0 +1,13 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: api_case_01_basic_users_orders
+    kind: rest
+    config:
+      base_url: http://localhost:8081
+      discovery:
+        mode: openapi
+        openapi_url: http://localhost:8081/openapi.json

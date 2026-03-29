@@ -1,0 +1,11 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: files_case_08_single_parquet
+    kind: files
+    config:
+      path: ./demo/files/test_8/ledger.parquet
+      max_depth: 0

@@ -1,0 +1,16 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: mixed_case_02_files
+    kind: files
+    config:
+      path: ./demo/files/test_2
+      max_depth: 1
+
+  - name: mixed_case_02_postgres
+    kind: postgres
+    config:
+      dsn_env: DEMO_PG_DSN

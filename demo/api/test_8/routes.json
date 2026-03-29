@@ -1,0 +1,27 @@
+{
+  "/customers": [
+    { "id": 1, "full_name": "Irina Sokolova", "segment": "vip" },
+    { "id": 2, "full_name": "Dmitry Lebedev", "segment": "base" }
+  ],
+  "/customers/1": {
+    "id": 1,
+    "full_name": "Irina Sokolova",
+    "email": "irina@example.com",
+    "phone": "+79990000001"
+  },
+  "/customers/1/tickets": [
+    { "id": 9001, "status": "open", "opened_at": "2026-03-20T09:00:00Z", "closed_at": null },
+    { "id": 9002, "status": "resolved", "opened_at": "2026-03-18T14:00:00Z", "closed_at": "2026-03-18T16:20:00Z" }
+  ],
+  "/tickets": [
+    { "id": 9001, "title": "Cannot login", "priority": "high", "status": "open" },
+    { "id": 9002, "title": "Billing mismatch", "priority": "medium", "status": "resolved" }
+  ],
+  "/tickets/9001": {
+    "id": 9001,
+    "title": "Cannot login",
+    "priority": "high",
+    "status": "open",
+    "requester_email": "irina@example.com"
+  }
+}

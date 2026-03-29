@@ -1,0 +1,141 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Demo API Case 2",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/customers": {
+      "get": {
+        "summary": "Customers",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "full_name", "segment"],
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "full_name": { "type": "string" },
+                      "segment": { "type": "string" },
+                      "email": { "type": "string", "nullable": true }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "summary": "Products",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["sku", "name", "price", "active"],
+                    "properties": {
+                      "sku": { "type": "string" },
+                      "name": { "type": "string" },
+                      "price": { "type": "number" },
+                      "active": { "type": "boolean" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders": {
+      "get": {
+        "summary": "Orders",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "customer_id", "status", "created_at"],
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "customer_id": { "type": "integer" },
+                      "status": { "type": "string" },
+                      "created_at": { "type": "string", "format": "date-time" },
+                      "amount": { "type": "number" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments": {
+      "get": {
+        "summary": "Payments",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "order_id", "method", "amount"],
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "order_id": { "type": "integer" },
+                      "method": { "type": "string" },
+                      "amount": { "type": "number" },
+                      "paid_at": { "type": "string", "format": "date-time", "nullable": true }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cities": {
+      "get": {
+        "summary": "Cities",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["code", "name", "country"],
+                    "properties": {
+                      "code": { "type": "string" },
+                      "name": { "type": "string" },
+                      "country": { "type": "string" },
+                      "population": { "type": "integer", "nullable": true }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

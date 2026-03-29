@@ -1,0 +1,11 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: files_case_04_csv_profiles
+    kind: files
+    config:
+      path: ./demo/files/test_4
+      max_depth: 0

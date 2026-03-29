@@ -1,0 +1,26 @@
+{
+  "/customers": [
+    { "id": 1, "full_name": "Ivan Petrov", "segment": "vip", "email": "ivan@example.com" },
+    { "id": 2, "full_name": "Anna Sidorova", "segment": "base", "email": null },
+    { "id": 3, "full_name": "Pavel Smirnov", "segment": "vip", "email": "pavel@example.com" }
+  ],
+  "/products": [
+    { "sku": "SKU-100", "name": "Office Chair", "price": 12990.0, "active": true },
+    { "sku": "SKU-101", "name": "Desk Lamp", "price": 3490.0, "active": true },
+    { "sku": "SKU-102", "name": "Archive Box", "price": 490.0, "active": false }
+  ],
+  "/orders": [
+    { "id": 5001, "customer_id": 1, "status": "paid", "created_at": "2026-03-10T10:00:00Z", "amount": 1250.5 },
+    { "id": 5002, "customer_id": 2, "status": "created", "created_at": "2026-03-11T09:30:00Z", "amount": 320.0 },
+    { "id": 5003, "customer_id": 3, "status": "cancelled", "created_at": "2026-03-12T16:45:00Z", "amount": 780.25 }
+  ],
+  "/payments": [
+    { "id": 7001, "order_id": 5001, "method": "card", "amount": 1250.5, "paid_at": "2026-03-10T10:05:00Z" },
+    { "id": 7002, "order_id": 5002, "method": "invoice", "amount": 320.0, "paid_at": null }
+  ],
+  "/cities": [
+    { "code": "MOW", "name": "Moscow", "country": "RU", "population": 13000000 },
+    { "code": "KZN", "name": "Kazan", "country": "RU", "population": 1250000 },
+    { "code": "TRV", "name": "Tver", "country": "RU", "population": null }
+  ]
+}

@@ -1,0 +1,1 @@
+Single parquet file case.

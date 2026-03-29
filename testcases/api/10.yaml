@@ -1,0 +1,45 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: api_case_10_multi_entities
+    kind: rest
+    config:
+      base_url: http://localhost:8082
+      discovery:
+        mode: openapi
+        openapi_url: http://localhost:8082/openapi.json
+
+  - name: api_case_10_sensitive
+    kind: rest
+    config:
+      base_url: http://localhost:8083
+      discovery:
+        mode: openapi
+        openapi_url: http://localhost:8083/openapi.json
+
+  - name: api_case_10_summary
+    kind: rest
+    config:
+      base_url: http://localhost:8085
+      discovery:
+        mode: openapi
+        openapi_url: http://localhost:8085/openapi.json
+
+  - name: api_case_10_broad
+    kind: rest
+    config:
+      base_url: http://localhost:8086
+      discovery:
+        mode: openapi
+        openapi_url: http://localhost:8086/openapi.json
+
+  - name: api_case_10_support_params
+    kind: rest
+    config:
+      base_url: http://localhost:8088
+      discovery:
+        mode: openapi
+        openapi_url: http://localhost:8088/openapi.json

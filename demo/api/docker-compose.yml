@@ -1,0 +1,96 @@
+services:
+  demo_api_1:
+    image: public.ecr.aws/docker/library/python:3.12-alpine
+    working_dir: /srv/api
+    environment:
+      DEMO_API_SLOT: "1"
+      DEMO_API_MODE: ${DEMO_API_MODE:-}
+    command: ["python", "server.py"]
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./:/srv/api:ro
+
+  demo_api_2:
+    image: public.ecr.aws/docker/library/python:3.12-alpine
+    working_dir: /srv/api
+    environment:
+      DEMO_API_SLOT: "2"
+      DEMO_API_MODE: ${DEMO_API_MODE:-}
+    command: ["python", "server.py"]
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./:/srv/api:ro
+
+  demo_api_3:
+    image: public.ecr.aws/docker/library/python:3.12-alpine
+    working_dir: /srv/api
+    environment:
+      DEMO_API_SLOT: "3"
+      DEMO_API_MODE: ${DEMO_API_MODE:-}
+    command: ["python", "server.py"]
+    ports:
+      - "8083:8080"
+    volumes:
+      - ./:/srv/api:ro
+
+  demo_api_4:
+    image: public.ecr.aws/docker/library/python:3.12-alpine
+    working_dir: /srv/api
+    environment:
+      DEMO_API_SLOT: "4"
+      DEMO_API_MODE: ${DEMO_API_MODE:-}
+    command: ["python", "server.py"]
+    ports:
+      - "8084:8080"
+    volumes:
+      - ./:/srv/api:ro
+
+  demo_api_5:
+    image: public.ecr.aws/docker/library/python:3.12-alpine
+    working_dir: /srv/api
+    environment:
+      DEMO_API_SLOT: "5"
+      DEMO_API_MODE: ${DEMO_API_MODE:-}
+    command: ["python", "server.py"]
+    ports:
+      - "8085:8080"
+    volumes:
+      - ./:/srv/api:ro
+
+  demo_api_6:
+    image: public.ecr.aws/docker/library/python:3.12-alpine
+    working_dir: /srv/api
+    environment:
+      DEMO_API_SLOT: "6"
+      DEMO_API_MODE: ${DEMO_API_MODE:-}
+    command: ["python", "server.py"]
+    ports:
+      - "8086:8080"
+    volumes:
+      - ./:/srv/api:ro
+
+  demo_api_7:
+    image: public.ecr.aws/docker/library/python:3.12-alpine
+    working_dir: /srv/api
+    environment:
+      DEMO_API_SLOT: "7"
+      DEMO_API_MODE: ${DEMO_API_MODE:-}
+    command: ["python", "server.py"]
+    ports:
+      - "8087:8080"
+    volumes:
+      - ./:/srv/api:ro
+
+  demo_api_8:
+    image: public.ecr.aws/docker/library/python:3.12-alpine
+    working_dir: /srv/api
+    environment:
+      DEMO_API_SLOT: "8"
+      DEMO_API_MODE: ${DEMO_API_MODE:-}
+    command: ["python", "server.py"]
+    ports:
+      - "8088:8080"
+    volumes:
+      - ./:/srv/api:ro

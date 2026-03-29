@@ -1,0 +1,166 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Demo API Case 4",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/sessions": {
+      "get": {
+        "summary": "Sessions",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "user_id", "started_at"],
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "user_id": { "type": "integer" },
+                      "started_at": { "type": "string", "format": "date-time" },
+                      "ended_at": { "type": "string", "format": "date-time", "nullable": true },
+                      "is_mobile": { "type": "boolean" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events": {
+      "get": {
+        "summary": "Events",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "session_id", "event_name", "event_at"],
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "session_id": { "type": "integer" },
+                      "event_name": { "type": "string" },
+                      "screen_name": { "type": "string", "nullable": true },
+                      "event_at": { "type": "string", "format": "date-time" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/devices": {
+      "get": {
+        "summary": "Devices",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "platform", "version"],
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "platform": { "type": "string" },
+                      "version": { "type": "string" },
+                      "manufacturer": { "type": "string", "nullable": true }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "summary": "Metrics",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["name", "metric_value", "captured_at"],
+                    "properties": {
+                      "name": { "type": "string" },
+                      "metric_value": { "type": "number" },
+                      "captured_at": { "type": "string", "format": "date-time" },
+                      "region": { "type": "string", "nullable": true }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/regions": {
+      "get": {
+        "summary": "Regions",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["code", "name", "active"],
+                    "properties": {
+                      "code": { "type": "string" },
+                      "name": { "type": "string" },
+                      "active": { "type": "boolean" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/alerts": {
+      "get": {
+        "summary": "Alerts",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "severity", "triggered_at"],
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "severity": { "type": "string" },
+                      "message": { "type": "string", "nullable": true },
+                      "triggered_at": { "type": "string", "format": "date-time" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+id,comment,owner
+1,"Hello, world",alice
+2,"Value with ""quotes"" inside",bob
+3,"Line with commas, spaces, and symbols",carol
+4,"Simple value",david
