@@ -20,6 +20,11 @@ import (
 )
 
 func main() {
+	if err := settings.LoadEnvFileIfPresent(".env"); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
 	if err := newRootCmd().Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
