@@ -45,7 +45,8 @@ curl -fsSL https://raw.githubusercontent.com/EdOoO21/metadata-parser/main/script
 cd ~/metadata-parser-demo
 ```
 
-Если проект уже лежит локально, этот шаг можно пропустить и просто перейти в его корень:
+Если проект уже лежит локально, можно пропустить скачивание demo-bundle и просто перейти в его корень.
+Если `catalog` уже установлен, можно пропустить и установку CLI:
 
 ```bash
 cd metadata-parser
@@ -122,7 +123,7 @@ make app-down-v
 - `metadata-parser_<os>_<arch>.tar.gz`
   архив с бинарем `catalog`
 - `metadata-parser-demo.tar.gz`
-  demo-bundle с `docker-compose.yml`, `demo/`, `testcases/`, `Makefile`, `.env`
+  demo-bundle с `docker-compose.yml`, `demo/`, `testcases/`, `scripts/`, SQL-миграциями, `Makefile`, `README.md`, `.env`
 
 Скрипты установки:
 - [`scripts/install_release.sh`](/home/edo/metadata-parser/scripts/install_release.sh) — ставит CLI

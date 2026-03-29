@@ -1,10 +1,14 @@
 APP_NAME=catalog
 CATALOG_BIN?=catalog
+DIST_DIR?=dist
+RELEASE_OS?=$(shell go env GOOS)
+RELEASE_ARCH?=$(shell go env GOARCH)
+RELEASE_TARGETS?=linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
 PG_DEMO_COMPOSE=docker compose -f ./demo/postgres/docker-compose.yml
 API_DEMO_COMPOSE=docker compose -f ./demo/api/docker-compose.yml
 APP_COMPOSE=docker compose -f ./docker-compose.yml
 
-.PHONY: tidy build test cover run-demo demo-up demo-down-v e2e-demo metadata metadata-diff app-up app-down-v help
+.PHONY: tidy build test cover run-demo demo-up demo-down-v e2e-demo metadata metadata-diff app-up app-down-v release-cli release-demo release-all help
 
 help:
 	@echo "Доступные команды:"
@@ -20,6 +24,9 @@ help:
 	@echo "  make metadata CATEGORY=files CASE=2 - выполнить run на кейсе, временно подняв только нужные source-контейнеры"
 	@echo "  make metadata-diff CATEGORY=files CASE=1 - прогнать baseline/changed и сразу показать diff"
 	@echo "  make e2e-demo  - полный demo-сценарий run/report/diff"
+	@echo "  make release-cli RELEASE_OS=linux RELEASE_ARCH=amd64 - собрать архив с бинарем"
+	@echo "  make release-demo - собрать demo-bundle"
+	@echo "  make release-all - собрать demo-bundle и архивы CLI для linux/darwin amd64/arm64"
 	@echo "  make demo-down-v - остановить demo-инфраструктуру"
 	@echo "  Переменная CATALOG_BIN позволяет указать путь к бинарю, например CATALOG_BIN=./bin/catalog"
 
@@ -28,6 +35,34 @@ tidy:
 
 build:
 	go build -o bin/$(APP_NAME) ./cmd/catalog
+
+release-cli:
+	@mkdir -p "$(DIST_DIR)"
+	CGO_ENABLED=0 GOOS=$(RELEASE_OS) GOARCH=$(RELEASE_ARCH) go build -o "$(DIST_DIR)/$(APP_NAME)" ./cmd/catalog
+	tar -czf "$(DIST_DIR)/metadata-parser_$(RELEASE_OS)_$(RELEASE_ARCH).tar.gz" -C "$(DIST_DIR)" "$(APP_NAME)"
+	rm -f "$(DIST_DIR)/$(APP_NAME)"
+
+release-demo:
+	@mkdir -p "$(DIST_DIR)"
+	tar -czf "$(DIST_DIR)/metadata-parser-demo.tar.gz" \
+		docker-compose.yml \
+		demo \
+		testcases \
+		scripts \
+		internal/infrastructure/db/postgres/migrations \
+		Makefile \
+		README.md \
+		.env
+
+release-all:
+	@set -e; \
+	for target in $(RELEASE_TARGETS); do \
+		os="$${target%/*}"; \
+		arch="$${target#*/}"; \
+		echo "Building $$os/$$arch"; \
+		$(MAKE) release-cli RELEASE_OS="$$os" RELEASE_ARCH="$$arch"; \
+	done
+	@$(MAKE) release-demo
 
 test:
 	go test ./...
