@@ -126,8 +126,8 @@ make app-down-v
   demo-bundle с `docker-compose.yml`, `demo/`, `testcases/`, `scripts/`, SQL-миграциями, `Makefile`, `README.md`, `.env`
 
 Скрипты установки:
-- [`scripts/install_release.sh`](/home/edo/metadata-parser/scripts/install_release.sh) — ставит CLI
-- [`scripts/install_demo_bundle.sh`](/home/edo/metadata-parser/scripts/install_demo_bundle.sh) — скачивает demo-bundle в `~/metadata-parser-demo`
+- [`scripts/install_release.sh`](scripts/install_release.sh) — ставит CLI
+- [`scripts/install_demo_bundle.sh`](scripts/install_demo_bundle.sh) — скачивает demo-bundle в `~/metadata-parser-demo`
 
 Go для обычного использования проекта не нужен.
 
@@ -229,16 +229,16 @@ sources:
 - если у API есть только HTML-документация, Postman collection или вообще нет формальной схемы, этот коннектор сейчас не подойдет
 
 Готовые примеры лежат в:
-- [`testcases/files`](/home/edo/metadata-parser/testcases/files)
-- [`testcases/postgres`](/home/edo/metadata-parser/testcases/postgres)
-- [`testcases/api`](/home/edo/metadata-parser/testcases/api)
-- [`testcases/mixed`](/home/edo/metadata-parser/testcases/mixed)
+- [`testcases/files`](testcases/files)
+- [`testcases/postgres`](testcases/postgres)
+- [`testcases/api`](testcases/api)
+- [`testcases/mixed`](testcases/mixed)
 
 Если нужно использовать свои подключения, меняй значения в `.env`, а не имена переменных в самих demo-конфигах.
 
 ## Структура demo-данных
 
-Файловые demo-данные лежат в [`demo/files`](/home/edo/metadata-parser/demo/files)
+Файловые demo-данные лежат в [`demo/files`](demo/files)
 и организованы как набор кейсов `test_n`.
 
 Основная схема:
@@ -246,14 +246,14 @@ sources:
 - `demo/files/diff/<case>/{baseline,changed}` — состояния для diff по файловым источникам
 - `demo/postgres/diff/<case>/{baseline,changed}` — SQL-фикстуры для diff по PostgreSQL-источникам
 - `demo/api/diff/<slot>/{baseline,changed}` — OpenAPI и ответы для diff по REST-источникам
-- [`testcases/files`](/home/edo/metadata-parser/testcases/files) — конфиги файловых кейсов
-- [`testcases/postgres`](/home/edo/metadata-parser/testcases/postgres) — конфиги PostgreSQL-кейсов
-- [`testcases/api`](/home/edo/metadata-parser/testcases/api) — конфиги REST/OpenAPI-кейсов
-- [`testcases/mixed`](/home/edo/metadata-parser/testcases/mixed) — смешанные конфиги
-- [`testcases/diff_files`](/home/edo/metadata-parser/testcases/diff_files) — файловые diff-кейсы
-- [`testcases/diff_postgres`](/home/edo/metadata-parser/testcases/diff_postgres) — PostgreSQL diff-кейсы
-- [`testcases/diff_api`](/home/edo/metadata-parser/testcases/diff_api) — REST diff-кейсы
-- [`testcases/diff_mixed`](/home/edo/metadata-parser/testcases/diff_mixed) — конфиги под diff-сценарии
+- [`testcases/files`](testcases/files) — конфиги файловых кейсов
+- [`testcases/postgres`](testcases/postgres) — конфиги PostgreSQL-кейсов
+- [`testcases/api`](testcases/api) — конфиги REST/OpenAPI-кейсов
+- [`testcases/mixed`](testcases/mixed) — смешанные конфиги
+- [`testcases/diff_files`](testcases/diff_files) — файловые diff-кейсы
+- [`testcases/diff_postgres`](testcases/diff_postgres) — PostgreSQL diff-кейсы
+- [`testcases/diff_api`](testcases/diff_api) — REST diff-кейсы
+- [`testcases/diff_mixed`](testcases/diff_mixed) — конфиги под diff-сценарии
 
 Примеры запуска:
 
@@ -274,8 +274,8 @@ catalog run --config ./testcases/files/18.yaml
 ## Расширенный demo/e2e
 
 Для сценариев с `postgres`, `files` и `rest` источниками нужен расширенный
-стенд из [`demo/postgres/docker-compose.yml`](/home/edo/metadata-parser/demo/postgres/docker-compose.yml)
-и [`demo/api/docker-compose.yml`](/home/edo/metadata-parser/demo/api/docker-compose.yml):
+стенд из [`demo/postgres/docker-compose.yml`](demo/postgres/docker-compose.yml)
+и [`demo/api/docker-compose.yml`](demo/api/docker-compose.yml):
 
 ```bash
 make app-up
@@ -315,7 +315,7 @@ make metadata-diff CATEGORY=mixed CASE=1
 - для `api` поднимает нужный demo API-слот в режиме `baseline`, потом в режиме `changed`
 - каталоговая БД приложения при этом не удаляется
 
-Скрипт orchestration для diff лежит в [`scripts/metadata_diff.sh`](/home/edo/metadata-parser/scripts/metadata_diff.sh).
+Скрипт orchestration для diff лежит в [`scripts/metadata_diff.sh`](scripts/metadata_diff.sh).
 
 ## Тесты
 
@@ -335,7 +335,7 @@ make test
 
 ## Автоматическая e2e-проверка кейсов
 
-Для полного прогона demo-кейсов есть скрипт [`scripts/verify_testcases.sh`](/home/edo/metadata-parser/scripts/verify_testcases.sh).
+Для полного прогона demo-кейсов есть скрипт [`scripts/verify_testcases.sh`](scripts/verify_testcases.sh).
 
 Запуск:
 
@@ -382,7 +382,7 @@ bash ./scripts/verify_testcases.sh diff_files diff_postgres diff_api diff_mixed
 
 То есть это e2e-проверка корректного сохранения и согласованности каталога, а не полный `golden`-oracle на содержимое каждого testcase.
 
-Логи и summary сохраняются в [`tmp/e2e-verify`](/home/edo/metadata-parser/tmp/e2e-verify).
+Логи и summary сохраняются в [`tmp/e2e-verify`](tmp/e2e-verify).
 
 Для точечной содержательной проверки отдельных кейсов можно дополнительно:
 - запускать конкретный `make metadata CATEGORY=... CASE=...`

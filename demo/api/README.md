@@ -13,9 +13,9 @@
   - `demo_api_6` -> `localhost:8086` -> `test_6`
   - `demo_api_7` -> `localhost:8087` -> `test_7`
   - `demo_api_8` -> `localhost:8088` -> `test_8`
-- [`testcases/api`](/home/edo/metadata-parser/testcases/api) комбинирует эти слоты в разных наборах
-- [`testcases/mixed`](/home/edo/metadata-parser/testcases/mixed) и [`testcases/diff_mixed`](/home/edo/metadata-parser/testcases/diff_mixed) используют выбранные API-слоты повторно
-- [`testcases/diff_api`](/home/edo/metadata-parser/testcases/diff_api) прогоняет baseline/changed по одному фиксированному слоту
+- [`testcases/api`](../../testcases/api) комбинирует эти слоты в разных наборах
+- [`testcases/mixed`](../../testcases/mixed) и [`testcases/diff_mixed`](../../testcases/diff_mixed) используют выбранные API-слоты повторно
+- [`testcases/diff_api`](../../testcases/diff_api) прогоняет baseline/changed по одному фиксированному слоту
 
 Подготовленные фикстуры:
 - `1` — 2 ручки: users и orders
