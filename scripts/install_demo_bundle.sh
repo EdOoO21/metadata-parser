@@ -31,7 +31,7 @@ download_bundle() {
   base_url="$(release_base_url)"
   output_path="${TMP_DIR}/${BUNDLE_NAME}"
 
-  echo "Downloading ${base_url}/${BUNDLE_NAME}"
+  echo "Downloading ${base_url}/${BUNDLE_NAME}" >&2
   curl -fsSL "${base_url}/${BUNDLE_NAME}" -o "${output_path}"
   printf '%s' "${output_path}"
 }

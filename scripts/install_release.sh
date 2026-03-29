@@ -74,7 +74,7 @@ download_release_archive() {
   asset_name="metadata-parser_${os}_${arch}.tar.gz"
   output_path="${TMP_DIR}/${asset_name}"
 
-  echo "Downloading ${base_url}/${asset_name}"
+  echo "Downloading ${base_url}/${asset_name}" >&2
   curl -fsSL "${base_url}/${asset_name}" -o "${output_path}"
   printf '%s' "${output_path}"
 }

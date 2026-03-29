@@ -42,7 +42,15 @@ CLI-проект каталога метаданных на Go.
 ```bash
 curl -fsSL https://raw.githubusercontent.com/EdOoO21/metadata-parser/main/scripts/install_release.sh | bash
 curl -fsSL https://raw.githubusercontent.com/EdOoO21/metadata-parser/main/scripts/install_demo_bundle.sh | bash
+source ~/.bashrc
 cd ~/metadata-parser-demo
+```
+
+Если `catalog` после установки не находится, открой новый терминал
+или выполни:
+
+```bash
+source ~/.bashrc
 ```
 
 Если проект уже лежит локально, можно пропустить скачивание demo-bundle и просто перейти в его корень.
