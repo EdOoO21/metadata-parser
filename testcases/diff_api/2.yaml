@@ -1,5 +1,9 @@
 version: 1
 
+# This config is intended for `make metadata-diff CATEGORY=api CASE=2`.
+# scripts/metadata_diff.sh keeps the same base URL and swaps demo API data
+# between `baseline` and `changed` behind that URL.
+
 catalog:
   dsn_env: CATALOG_DSN
 

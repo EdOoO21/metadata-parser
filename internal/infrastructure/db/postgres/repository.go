@@ -134,6 +134,36 @@ WHERE id = $1
 	return scanRun(row, fmt.Sprintf("get run %d", runID))
 }
 
+func (r *Repository) ListRecentRuns(ctx context.Context, limit int) ([]model.Run, error) {
+	const query = `
+SELECT id, started_at, finished_at, status, config_hash, config_snapshot_json, error_message
+FROM runs
+ORDER BY id DESC
+LIMIT $1
+`
+
+	rows, err := r.db.Query(ctx, query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("list recent runs: %w", err)
+	}
+	defer rows.Close()
+
+	runs := make([]model.Run, 0, limit)
+	for rows.Next() {
+		run, err := scanRun(rows, "list recent runs")
+		if err != nil {
+			return nil, err
+		}
+		runs = append(runs, *run)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("list recent runs: %w", err)
+	}
+
+	return runs, nil
+}
+
 func (r *Repository) UpdateRunStatus(
 	ctx context.Context,
 	runID int64,

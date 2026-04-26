@@ -1,11 +1,13 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	appports "github.com/EdOoO21/metadata-parser/internal/application/ports"
 	reportapp "github.com/EdOoO21/metadata-parser/internal/application/report"
+	"github.com/EdOoO21/metadata-parser/internal/domain/model"
 	"github.com/spf13/cobra"
 )
 
@@ -55,9 +57,15 @@ func NewReportCmd(
 			}
 			defer catalogConn.Close()
 
+			repo := catalogConn.Repository()
+			resolvedRunID, err := resolveReportRunID(cmd.Context(), repo, latest, runID)
+			if err != nil {
+				return err
+			}
+
 			result, err := reportCatalogUseCase.Execute(cmd.Context(), reportapp.ExecuteInput{
-				Repository: catalogConn.Repository(),
-				RunID:      runID,
+				Repository: repo,
+				RunID:      resolvedRunID,
 			})
 			if err != nil {
 				return err
@@ -109,13 +117,38 @@ func NewReportCmd(
 }
 
 func validateReportSelection(latest bool, runID int64) error {
-	if latest {
-		panic("report latest selector is not implemented yet")
+	if latest && runID > 0 {
+		return fmt.Errorf("flags --latest and --run-id cannot be used together")
 	}
-	if runID <= 0 {
+	if !latest && runID <= 0 {
 		return fmt.Errorf("flag --run-id is required")
 	}
 	return nil
+}
+
+type recentRunsLister interface {
+	ListRecentRuns(ctx context.Context, limit int) ([]model.Run, error)
+}
+
+func resolveReportRunID(ctx context.Context, repo appports.CatalogRepository, latest bool, runID int64) (int64, error) {
+	if !latest {
+		return runID, nil
+	}
+
+	lister, ok := repo.(recentRunsLister)
+	if !ok {
+		return 0, fmt.Errorf("latest run selector is not supported by the catalog repository")
+	}
+
+	runs, err := lister.ListRecentRuns(ctx, 1)
+	if err != nil {
+		return 0, err
+	}
+	if len(runs) == 0 {
+		return 0, fmt.Errorf("no runs found in catalog")
+	}
+
+	return runs[0].ID, nil
 }
 
 func writeFile(path string, payload []byte) error {

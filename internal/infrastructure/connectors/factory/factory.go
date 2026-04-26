@@ -52,7 +52,7 @@ func (f *Factory) ForSource(src settings.SourceConfig) (appports.SourceScanner, 
 	case string(types.SourceKindFiles):
 		return f.fileScannerForSource(src)
 	default:
-		return nil, fmt.Errorf("source kind %q is not implemented yet", src.Kind)
+		return nil, fmt.Errorf("unsupported source kind %q", src.Kind)
 	}
 }
 

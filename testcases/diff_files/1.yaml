@@ -1,5 +1,9 @@
 version: 1
 
+# This config is intended for `make metadata-diff CATEGORY=files CASE=1`.
+# The path `./demo/files/diff/1/current` is created by scripts/metadata_diff.sh
+# by copying either `baseline` or `changed` into the same logical source path.
+
 catalog:
   dsn_env: CATALOG_DSN
 

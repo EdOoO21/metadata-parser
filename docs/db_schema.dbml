@@ -1,0 +1,97 @@
+Table sources {
+  id bigserial [pk]
+  name text [not null, unique]
+  kind text [not null]
+  description text
+  created_at timestamptz [not null]
+}
+
+Table runs {
+  id bigserial [pk]
+  started_at timestamptz [not null]
+  finished_at timestamptz
+  status text [not null]
+  config_hash text [not null]
+  config_snapshot_json jsonb
+  error_message text
+}
+
+Table run_sources {
+  id bigserial [pk]
+  run_id bigint [not null, ref: > runs.id]
+  source_id bigint [not null, ref: > sources.id]
+  started_at timestamptz [not null]
+  finished_at timestamptz
+  status text [not null]
+  error_message text
+  effective_config_json jsonb
+
+  Indexes {
+    (run_id, source_id) [unique]
+  }
+}
+
+Table datasets {
+  id bigserial [pk]
+  run_source_id bigint [not null, ref: > run_sources.id]
+  kind text [not null]
+  dataset_key text [not null]
+  name text [not null]
+  location text [not null]
+  comment text
+  row_count bigint
+  discovered_at timestamptz [not null]
+  profile_status text [not null]
+  profile_error text
+  metadata_json jsonb
+
+  Indexes {
+    (run_source_id, dataset_key) [unique]
+  }
+}
+
+Table columns {
+  id bigserial [pk]
+  dataset_id bigint [not null, ref: > datasets.id]
+  name text [not null]
+  original_type text [not null]
+  normalized_type text [not null]
+  is_nullable boolean [not null]
+  comment text
+  ordinal_position integer [not null]
+
+  Indexes {
+    (dataset_id, name) [unique]
+  }
+}
+
+Table column_stats {
+  id bigserial [pk]
+  column_id bigint [not null, unique, ref: > columns.id]
+  non_null_count bigint [not null]
+  null_count bigint [not null]
+  distinct_count bigint [not null]
+  min_value_json jsonb
+  max_value_json jsonb
+}
+
+Table column_top_values {
+  id bigserial [pk]
+  column_stat_id bigint [not null, ref: > column_stats.id]
+  rank integer [not null]
+  value_json jsonb [not null]
+  occurrence_count bigint [not null]
+
+  Indexes {
+    (column_stat_id, rank) [unique]
+  }
+}
+
+Table sensitive_patterns {
+  id bigserial [pk]
+  name text [not null, unique]
+  pattern text [not null]
+  description text
+  is_active boolean [not null, default: true]
+  created_at timestamptz [not null]
+}

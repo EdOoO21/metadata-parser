@@ -1,5 +1,10 @@
 version: 1
 
+# This config is intended for `make metadata-diff CATEGORY=mixed CASE=1`.
+# The files path `./demo/files/diff/1/current` is created by scripts/metadata_diff.sh,
+# while PostgreSQL and API data are swapped between `baseline` and `changed`
+# behind the same DSN and base URL.
+
 catalog:
   dsn_env: CATALOG_DSN
 

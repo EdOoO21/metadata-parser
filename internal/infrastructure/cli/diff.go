@@ -1,10 +1,12 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 
 	diffapp "github.com/EdOoO21/metadata-parser/internal/application/diff"
 	appports "github.com/EdOoO21/metadata-parser/internal/application/ports"
+	"github.com/EdOoO21/metadata-parser/internal/domain/model"
 	"github.com/spf13/cobra"
 )
 
@@ -49,10 +51,16 @@ func NewDiffCmd(
 			}
 			defer catalogConn.Close()
 
+			repo := catalogConn.Repository()
+			resolvedFromRunID, resolvedToRunID, err := resolveDiffRunIDs(cmd.Context(), repo, latest, fromRunID, toRunID)
+			if err != nil {
+				return err
+			}
+
 			message, err := diffCatalogUseCase.Execute(cmd.Context(), diffapp.ExecuteInput{
-				Repository: catalogConn.Repository(),
-				FromRunID:  fromRunID,
-				ToRunID:    toRunID,
+				Repository: repo,
+				FromRunID:  resolvedFromRunID,
+				ToRunID:    resolvedToRunID,
 			})
 			if err != nil {
 				return err
@@ -73,11 +81,42 @@ func NewDiffCmd(
 }
 
 func validateDiffSelection(latest bool, fromRunID, toRunID int64) error {
-	if latest {
-		panic("diff latest selector is not implemented yet")
+	if latest && (fromRunID > 0 || toRunID > 0) {
+		return fmt.Errorf("flags --latest and --from-run-id/--to-run-id cannot be used together")
 	}
-	if fromRunID <= 0 || toRunID <= 0 {
+	if !latest && (fromRunID <= 0 || toRunID <= 0) {
 		return fmt.Errorf("flags --from-run-id and --to-run-id are required")
 	}
 	return nil
+}
+
+type diffRecentRunsLister interface {
+	ListRecentRuns(ctx context.Context, limit int) ([]model.Run, error)
+}
+
+func resolveDiffRunIDs(
+	ctx context.Context,
+	repo appports.CatalogRepository,
+	latest bool,
+	fromRunID int64,
+	toRunID int64,
+) (int64, int64, error) {
+	if !latest {
+		return fromRunID, toRunID, nil
+	}
+
+	lister, ok := repo.(diffRecentRunsLister)
+	if !ok {
+		return 0, 0, fmt.Errorf("latest run selector is not supported by the catalog repository")
+	}
+
+	runs, err := lister.ListRecentRuns(ctx, 2)
+	if err != nil {
+		return 0, 0, err
+	}
+	if len(runs) < 2 {
+		return 0, 0, fmt.Errorf("at least two runs are required for --latest")
+	}
+
+	return runs[1].ID, runs[0].ID, nil
 }

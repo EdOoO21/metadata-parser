@@ -5,3 +5,4 @@ guide.txt
 demo/files/diff/*/current
 tmp/
 dist/
+.codex

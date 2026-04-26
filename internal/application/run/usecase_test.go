@@ -95,7 +95,7 @@ func (r *catalogRepoStub) CreateRun(ctx context.Context, run model.Run) (*model.
 }
 
 func (r *catalogRepoStub) GetRun(ctx context.Context, runID int64) (*model.Run, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("unexpected test call")
 }
 
 func (r *catalogRepoStub) UpdateRunStatus(ctx context.Context, runID int64, status types.RunStatus, finishedAt *time.Time, errorMessage *string) error {
@@ -166,7 +166,7 @@ func (r *catalogRepoStub) CreateColumnTopValues(ctx context.Context, values []mo
 }
 
 func (r *catalogRepoStub) ListReportRows(ctx context.Context, runID int64) ([]appports.ReportRow, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("unexpected test call")
 }
 
 func TestDetermineRunStatus(t *testing.T) {

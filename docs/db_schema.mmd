@@ -1,0 +1,89 @@
+erDiagram
+    sources {
+        BIGSERIAL id PK
+        TEXT name UK
+        TEXT kind
+        TEXT description
+        TIMESTAMPTZ created_at
+    }
+
+    runs {
+        BIGSERIAL id PK
+        TIMESTAMPTZ started_at
+        TIMESTAMPTZ finished_at
+        TEXT status
+        TEXT config_hash
+        JSONB config_snapshot_json
+        TEXT error_message
+    }
+
+    run_sources {
+        BIGSERIAL id PK
+        BIGINT run_id FK
+        BIGINT source_id FK
+        TIMESTAMPTZ started_at
+        TIMESTAMPTZ finished_at
+        TEXT status
+        TEXT error_message
+        JSONB effective_config_json
+    }
+
+    datasets {
+        BIGSERIAL id PK
+        BIGINT run_source_id FK
+        TEXT kind
+        TEXT dataset_key
+        TEXT name
+        TEXT location
+        TEXT comment
+        BIGINT row_count
+        TIMESTAMPTZ discovered_at
+        TEXT profile_status
+        TEXT profile_error
+        JSONB metadata_json
+    }
+
+    columns {
+        BIGSERIAL id PK
+        BIGINT dataset_id FK
+        TEXT name
+        TEXT original_type
+        TEXT normalized_type
+        BOOLEAN is_nullable
+        TEXT comment
+        INTEGER ordinal_position
+    }
+
+    column_stats {
+        BIGSERIAL id PK
+        BIGINT column_id FK
+        BIGINT non_null_count
+        BIGINT null_count
+        BIGINT distinct_count
+        JSONB min_value_json
+        JSONB max_value_json
+    }
+
+    column_top_values {
+        BIGSERIAL id PK
+        BIGINT column_stat_id FK
+        INTEGER rank
+        JSONB value_json
+        BIGINT occurrence_count
+    }
+
+    sensitive_patterns {
+        BIGSERIAL id PK
+        TEXT name UK
+        TEXT pattern
+        TEXT description
+        BOOLEAN is_active
+        TIMESTAMPTZ created_at
+    }
+
+    sources ||--o{ run_sources : source_id
+    runs ||--o{ run_sources : run_id
+    run_sources ||--o{ datasets : run_source_id
+    datasets ||--o{ columns : dataset_id
+    columns ||--|| column_stats : column_id
+    column_stats ||--o{ column_top_values : column_stat_id

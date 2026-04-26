@@ -23,11 +23,11 @@ func (s *diffRepoStub) WithTx(ctx context.Context, fn func(repo appports.Catalog
 }
 
 func (s *diffRepoStub) EnsureSource(ctx context.Context, source model.Source) (*model.Source, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("unexpected test call")
 }
 
 func (s *diffRepoStub) CreateRun(ctx context.Context, run model.Run) (*model.Run, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("unexpected test call")
 }
 
 func (s *diffRepoStub) GetRun(ctx context.Context, runID int64) (*model.Run, error) {
@@ -38,31 +38,31 @@ func (s *diffRepoStub) GetRun(ctx context.Context, runID int64) (*model.Run, err
 }
 
 func (s *diffRepoStub) UpdateRunStatus(ctx context.Context, runID int64, status types.RunStatus, finishedAt *time.Time, errorMessage *string) error {
-	return errors.New("not implemented")
+	return errors.New("unexpected test call")
 }
 
 func (s *diffRepoStub) CreateRunSource(ctx context.Context, runSource model.RunSource) (*model.RunSource, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("unexpected test call")
 }
 
 func (s *diffRepoStub) UpdateRunSourceStatus(ctx context.Context, runSourceID int64, status types.RunStatus, finishedAt *time.Time, errorMessage *string) error {
-	return errors.New("not implemented")
+	return errors.New("unexpected test call")
 }
 
 func (s *diffRepoStub) CreateDataset(ctx context.Context, dataset model.Dataset) (*model.Dataset, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("unexpected test call")
 }
 
 func (s *diffRepoStub) CreateColumn(ctx context.Context, column model.Column) (*model.Column, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("unexpected test call")
 }
 
 func (s *diffRepoStub) CreateColumnStat(ctx context.Context, stat model.ColumnStat) (*model.ColumnStat, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("unexpected test call")
 }
 
 func (s *diffRepoStub) CreateColumnTopValues(ctx context.Context, values []model.ColumnTopValue) error {
-	return errors.New("not implemented")
+	return errors.New("unexpected test call")
 }
 
 func (s *diffRepoStub) ListReportRows(ctx context.Context, runID int64) ([]appports.ReportRow, error) {

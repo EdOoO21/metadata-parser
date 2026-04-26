@@ -92,37 +92,37 @@ func (s *noopRepoStub) WithTx(ctx context.Context, fn func(repo appports.Catalog
 	return fn(s)
 }
 func (s *noopRepoStub) EnsureSource(ctx context.Context, source model.Source) (*model.Source, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("unexpected test call")
 }
 func (s *noopRepoStub) CreateRun(ctx context.Context, run model.Run) (*model.Run, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("unexpected test call")
 }
 func (s *noopRepoStub) GetRun(ctx context.Context, runID int64) (*model.Run, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("unexpected test call")
 }
 func (s *noopRepoStub) UpdateRunStatus(ctx context.Context, runID int64, status types.RunStatus, finishedAt *time.Time, errorMessage *string) error {
-	return errors.New("not implemented")
+	return errors.New("unexpected test call")
 }
 func (s *noopRepoStub) CreateRunSource(ctx context.Context, runSource model.RunSource) (*model.RunSource, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("unexpected test call")
 }
 func (s *noopRepoStub) UpdateRunSourceStatus(ctx context.Context, runSourceID int64, status types.RunStatus, finishedAt *time.Time, errorMessage *string) error {
-	return errors.New("not implemented")
+	return errors.New("unexpected test call")
 }
 func (s *noopRepoStub) CreateDataset(ctx context.Context, dataset model.Dataset) (*model.Dataset, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("unexpected test call")
 }
 func (s *noopRepoStub) CreateColumn(ctx context.Context, column model.Column) (*model.Column, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("unexpected test call")
 }
 func (s *noopRepoStub) CreateColumnStat(ctx context.Context, stat model.ColumnStat) (*model.ColumnStat, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("unexpected test call")
 }
 func (s *noopRepoStub) CreateColumnTopValues(ctx context.Context, values []model.ColumnTopValue) error {
-	return errors.New("not implemented")
+	return errors.New("unexpected test call")
 }
 func (s *noopRepoStub) ListReportRows(ctx context.Context, runID int64) ([]appports.ReportRow, error) {
-	return nil, errors.New("not implemented")
+	return nil, errors.New("unexpected test call")
 }
 
 func testConfig() *settings.AppConfig {

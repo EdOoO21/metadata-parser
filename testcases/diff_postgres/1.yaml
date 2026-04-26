@@ -1,5 +1,9 @@
 version: 1
 
+# This config is intended for `make metadata-diff CATEGORY=postgres CASE=1`.
+# scripts/metadata_diff.sh keeps the same DSN and swaps demo source data
+# between `baseline` and `changed` behind that DSN.
+
 catalog:
   dsn_env: CATALOG_DSN
 

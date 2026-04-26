@@ -92,6 +92,8 @@ make app-up
 catalog run --config ./testcases/files/1.yaml
 ```
 
+Команда `catalog run --config ...` запускает сканирование источников из указанного YAML-конфига и сохраняет результат в каталоговую БД как новый слепок. То есть это команда записи нового `run`, а не команда просмотра уже существующих данных.
+
 Для demo-кейсов удобнее использовать `make metadata`:
 
 ```bash
@@ -102,10 +104,19 @@ make metadata CATEGORY=mixed CASE=1
 
 Как это работает:
 - `catalog run --config ...` можно запускать напрямую, если source уже доступен
+- прямой вызов `catalog run --config ...` и `make metadata ...` решают одну и ту же задачу: создают новый `run` и добавляют данные в каталоговую БД
 - `make metadata CATEGORY=... CASE=...` удобно для demo-кейсов
+- каждый вызов `catalog run ...` или `make metadata ...` создает новый `run` в каталоговой БД
+- новый запуск не перетирает старые данные, а добавляет в каталог новый слепок с новым `run_id`
 - для `postgres`, `api`, `mixed`, `diff_mixed` команда сама поднимает нужные source-контейнеры
 - после завершения она удаляет только demo source-контейнеры и их данные
 - каталоговая БД приложения при этом остается запущенной
+
+Например, команда `make metadata CATEGORY=postgres CASE=1`:
+- временно поднимает demo PostgreSQL source для `source_case_1`
+- запускает `catalog run --config ./testcases/postgres/1.yaml`
+- сохраняет новый `run`, `run_sources`, `datasets`, `columns` и статистику в каталоговую БД на `localhost:5432`
+- после завершения удаляет только demo source-контейнер, но не очищает каталоговую БД
 
 Данные, которые уже сохранились в каталоговой БД на `localhost:5432`, можно после этого проверять вручную через `report` или `psql`.
 
@@ -126,6 +137,8 @@ make metadata-diff CATEGORY=mixed CASE=1
 ```bash
 make app-down-v
 ```
+
+`make app-down-v` останавливает каталоговую PostgreSQL БД и удаляет ее volume, то есть очищает все накопленные `run` и результаты предыдущих запусков.
 
 ## Артефакты релиза
 
@@ -323,6 +336,11 @@ make metadata-diff CATEGORY=mixed CASE=1
 - для `postgres` поднимает demo PostgreSQL source в режиме `baseline`, потом в режиме `changed`
 - для `api` поднимает нужный demo API-слот в режиме `baseline`, потом в режиме `changed`
 - каталоговая БД приложения при этом не удаляется
+
+Важно:
+- `testcases/diff_*/*.yaml` предназначены именно для `make metadata-diff`
+- для `diff_files` и `diff_mixed` путь `./demo/files/diff/<case>/current` создается временно скриптом `scripts/metadata_diff.sh`
+- поэтому прямой `catalog run --config ./testcases/diff_files/1.yaml` без подготовки `current` не является штатным сценарием
 
 Скрипт orchestration для diff лежит в [`scripts/metadata_diff.sh`](scripts/metadata_diff.sh).
 
