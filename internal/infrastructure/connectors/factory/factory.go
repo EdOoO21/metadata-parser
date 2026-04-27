@@ -3,6 +3,7 @@ package factory
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -13,6 +14,7 @@ import (
 	appports "github.com/EdOoO21/metadata-parser/internal/application/ports"
 	"github.com/EdOoO21/metadata-parser/internal/domain/model"
 	"github.com/EdOoO21/metadata-parser/internal/domain/types"
+	"github.com/EdOoO21/metadata-parser/internal/infrastructure/connectors/shared"
 	"github.com/EdOoO21/metadata-parser/internal/settings"
 )
 
@@ -89,10 +91,10 @@ func (f *Factory) fileScannerForSource(src settings.SourceConfig) (appports.Sour
 
 	parts := make([]appports.SourceScanner, 0, 2)
 	if f.csvScanner != nil {
-		parts = append(parts, scopedFilesScanner{scanner: f.csvScanner, extension: ".csv"})
+		parts = append(parts, f.csvScanner)
 	}
 	if f.parquetScanner != nil {
-		parts = append(parts, scopedFilesScanner{scanner: f.parquetScanner, extension: ".parquet"})
+		parts = append(parts, f.parquetScanner)
 	}
 	if len(parts) == 0 {
 		return nil, fmt.Errorf("no file scanners are configured")
@@ -149,7 +151,10 @@ func (s compositeScanner) ParseSource(ctx context.Context, src settings.SourceCo
 	for _, scanner := range s.scanners {
 		partial, err := scanner.ParseSource(ctx, src)
 		if err != nil {
-			continue
+			if errors.Is(err, shared.ErrNoMatchingFiles) {
+				continue
+			}
+			return nil, err
 		}
 		result.Datasets = append(result.Datasets, partial.Datasets...)
 	}
@@ -159,27 +164,6 @@ func (s compositeScanner) ParseSource(ctx context.Context, src settings.SourceCo
 	}
 
 	return result, nil
-}
-
-type scopedFilesScanner struct {
-	scanner   appports.SourceScanner
-	extension string
-}
-
-func (s scopedFilesScanner) ParseSource(ctx context.Context, src settings.SourceConfig) (*contracts.SourceScanResult, error) {
-	path, err := resolveFilesPath(src.Config.Path)
-	if err != nil {
-		return nil, err
-	}
-
-	info, err := os.Stat(path)
-	if err != nil {
-		return nil, err
-	}
-	if !info.IsDir() && !strings.EqualFold(filepath.Ext(path), s.extension) {
-		return nil, fmt.Errorf("source path does not match %s", s.extension)
-	}
-	return s.scanner.ParseSource(ctx, src)
 }
 
 var _ appports.SourceScannerFactory = (*Factory)(nil)

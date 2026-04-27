@@ -2,11 +2,13 @@ package parquet
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/EdOoO21/metadata-parser/internal/domain/types"
+	"github.com/EdOoO21/metadata-parser/internal/infrastructure/connectors/shared"
 	"github.com/EdOoO21/metadata-parser/internal/settings"
 	pq "github.com/parquet-go/parquet-go"
 )
@@ -90,6 +92,27 @@ func TestScannerParseSource_ParquetFileAndErrorCases(t *testing.T) {
 	})
 	if err == nil {
 		t.Fatal("expected invalid parquet error")
+	}
+}
+
+func TestScannerParseSource_ReturnsNoMatchingFiles(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "notes.txt"), []byte("hello"), 0o644); err != nil {
+		t.Fatalf("write txt file: %v", err)
+	}
+
+	scanner := NewScanner()
+	_, err := scanner.ParseSource(context.Background(), settings.SourceConfig{
+		Name: "demo-parquet",
+		Kind: "files",
+		Config: settings.SourceConfigDetails{
+			Path: dir,
+		},
+	})
+	if !errors.Is(err, shared.ErrNoMatchingFiles) {
+		t.Fatalf("expected ErrNoMatchingFiles, got %v", err)
 	}
 }
 

@@ -2,12 +2,14 @@ package factory
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/EdOoO21/metadata-parser/internal/application/contracts"
 	appports "github.com/EdOoO21/metadata-parser/internal/application/ports"
+	"github.com/EdOoO21/metadata-parser/internal/infrastructure/connectors/shared"
 	"github.com/EdOoO21/metadata-parser/internal/settings"
 )
 
@@ -198,7 +200,7 @@ func TestFactoryForSource_ErrorCases(t *testing.T) {
 	}
 }
 
-func TestResolveFilesPathAndScopedScanner(t *testing.T) {
+func TestResolveFilesPath(t *testing.T) {
 	t.Parallel()
 
 	resolved, err := resolveFilesPath("")
@@ -219,42 +221,6 @@ func TestResolveFilesPathAndScopedScanner(t *testing.T) {
 	if resolved == "" {
 		t.Fatal("expected resolved path")
 	}
-
-	inner := &stubScanner{result: &contracts.SourceScanResult{Datasets: []contracts.ScannedDataset{{}}}}
-	scanner := scopedFilesScanner{scanner: inner, extension: ".csv"}
-	if _, err := scanner.ParseSource(context.Background(), settings.SourceConfig{
-		Name: "csv",
-		Kind: "files",
-		Config: settings.SourceConfigDetails{
-			Path: csvPath,
-		},
-	}); err != nil {
-		t.Fatalf("unexpected scoped scanner error: %v", err)
-	}
-
-	if _, err := scanner.ParseSource(context.Background(), settings.SourceConfig{
-		Name: "csv",
-		Kind: "files",
-		Config: settings.SourceConfigDetails{
-			Path: tmpDir,
-		},
-	}); err != nil {
-		t.Fatalf("unexpected directory scoped scanner error: %v", err)
-	}
-
-	parquetPath := filepath.Join(tmpDir, "events.parquet")
-	if err := os.WriteFile(parquetPath, []byte("PAR1"), 0o644); err != nil {
-		t.Fatalf("write parquet: %v", err)
-	}
-	if _, err := scanner.ParseSource(context.Background(), settings.SourceConfig{
-		Name: "csv",
-		Kind: "files",
-		Config: settings.SourceConfigDetails{
-			Path: parquetPath,
-		},
-	}); err == nil {
-		t.Fatal("expected extension mismatch error")
-	}
 }
 
 func TestCompositeScanner_ErrorPaths(t *testing.T) {
@@ -263,8 +229,8 @@ func TestCompositeScanner_ErrorPaths(t *testing.T) {
 	scanner := compositeScanner{
 		sourceKind: "files",
 		scanners: []appports.SourceScanner{
-			&stubScanner{err: os.ErrNotExist},
-			&stubScanner{err: os.ErrPermission},
+			&stubScanner{err: shared.ErrNoMatchingFiles},
+			&stubScanner{err: shared.ErrNoMatchingFiles},
 		},
 	}
 	if _, err := scanner.ParseSource(context.Background(), settings.SourceConfig{
@@ -273,6 +239,28 @@ func TestCompositeScanner_ErrorPaths(t *testing.T) {
 		Config: settings.SourceConfigDetails{Path: "."},
 	}); err == nil {
 		t.Fatal("expected no datasets error")
+	}
+}
+
+func TestCompositeScanner_ReturnsRealScannerError(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("csv parse failed")
+	scanner := compositeScanner{
+		sourceKind: "files",
+		scanners: []appports.SourceScanner{
+			&stubScanner{err: expectedErr},
+			&stubScanner{result: &contracts.SourceScanResult{Datasets: []contracts.ScannedDataset{{}}}},
+		},
+	}
+
+	_, err := scanner.ParseSource(context.Background(), settings.SourceConfig{
+		Name:   "files-source",
+		Kind:   "files",
+		Config: settings.SourceConfigDetails{Path: "."},
+	})
+	if !errors.Is(err, expectedErr) {
+		t.Fatalf("expected real scanner error to be returned, got %v", err)
 	}
 }
 

@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/EdOoO21/metadata-parser/internal/domain/types"
+	"github.com/EdOoO21/metadata-parser/internal/infrastructure/connectors/shared"
 )
 
 func normalizeCSVParseOptions(opts CSVParseOptions) CSVParseOptions {
@@ -166,7 +167,7 @@ func discoverCSVPaths(path string, maxDepth int) ([]string, error) {
 
 	if !info.IsDir() {
 		if !isCSVPath(rootPath) {
-			return nil, fmt.Errorf("unsupported file extension %q", strings.ToLower(filepath.Ext(rootPath)))
+			return nil, fmt.Errorf("%w: unsupported file extension %q", shared.ErrNoMatchingFiles, strings.ToLower(filepath.Ext(rootPath)))
 		}
 		return []string{rootPath}, nil
 	}
@@ -202,7 +203,7 @@ func discoverCSVPaths(path string, maxDepth int) ([]string, error) {
 		return nil, fmt.Errorf("walk directory: %w", err)
 	}
 	if len(paths) == 0 {
-		return nil, fmt.Errorf("no csv files found under %s", rootPath)
+		return nil, fmt.Errorf("%w: no csv files found under %s", shared.ErrNoMatchingFiles, rootPath)
 	}
 
 	return paths, nil

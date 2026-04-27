@@ -3,12 +3,14 @@ package filescsv
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/EdOoO21/metadata-parser/internal/domain/types"
+	"github.com/EdOoO21/metadata-parser/internal/infrastructure/connectors/shared"
 	"github.com/EdOoO21/metadata-parser/internal/settings"
 )
 
@@ -181,5 +183,28 @@ func TestCSVParser_ParseSource_DirectoryProfilesAllCSVFiles(t *testing.T) {
 	}
 	if second.Columns[1].Column.NormalizedType != types.CanonicalTypeTimestamp {
 		t.Fatalf("unexpected created_at normalized type: %q", second.Columns[1].Column.NormalizedType)
+	}
+}
+
+func TestCSVParser_ParseSource_ReturnsNoMatchingFiles(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "notes.txt"), []byte("hello"), 0o644); err != nil {
+		t.Fatalf("write txt file: %v", err)
+	}
+
+	parser := NewCSVParser()
+
+	_, err := parser.ParseSource(context.Background(), settings.SourceConfig{
+		Name: "demo-files",
+		Kind: "files",
+		Config: settings.SourceConfigDetails{
+			Path:     dir,
+			MaxDepth: 0,
+		},
+	})
+	if !errors.Is(err, shared.ErrNoMatchingFiles) {
+		t.Fatalf("expected ErrNoMatchingFiles, got %v", err)
 	}
 }
