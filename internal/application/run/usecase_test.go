@@ -51,6 +51,7 @@ type catalogRepoStub struct {
 	nextDatasetID      int64
 	nextColumnID       int64
 	nextColumnStatID   int64
+	withTxCalls        int
 	runStatusCalls     []types.RunStatus
 	runStatusErrors    []*string
 	runSourceStatuses  []types.RunStatus
@@ -62,6 +63,7 @@ type catalogRepoStub struct {
 	createRunErr       error
 	updateRunErr       error
 	ensureSourceErr    error
+	withTxErr          error
 	createRunSourceErr error
 	updateRunSrcErr    error
 	createDatasetErr   error
@@ -71,6 +73,10 @@ type catalogRepoStub struct {
 }
 
 func (r *catalogRepoStub) WithTx(ctx context.Context, fn func(repo appports.CatalogRepository) error) error {
+	r.withTxCalls++
+	if r.withTxErr != nil {
+		return r.withTxErr
+	}
 	return fn(r)
 }
 
@@ -235,6 +241,9 @@ func TestScannerSourceHandler_HandlePersistsDatasetsColumnsStatsAndTopValues(t *
 	}
 	if len(repo.createdTopValues) != 1 || repo.createdTopValues[0][0].ColumnStatID == 0 {
 		t.Fatalf("unexpected top values: %+v", repo.createdTopValues)
+	}
+	if repo.withTxCalls != 1 {
+		t.Fatalf("expected one transaction, got %d", repo.withTxCalls)
 	}
 }
 
@@ -406,6 +415,30 @@ func TestScannerSourceHandler_PersistErrors(t *testing.T) {
 				t.Fatal("expected error")
 			}
 		})
+	}
+}
+
+func TestScannerSourceHandler_HandleReturnsTransactionError(t *testing.T) {
+	t.Parallel()
+
+	repo := &catalogRepoStub{withTxErr: errors.New("tx fail")}
+	handler := NewScannerSourceHandler(&loggerStub{})
+
+	err := handler.Handle(context.Background(), repo, 5, settings.SourceConfig{Name: "files"}, &sourceScannerStub{
+		result: &contracts.SourceScanResult{
+			Datasets: []contracts.ScannedDataset{
+				{Dataset: model.Dataset{Name: "people"}},
+			},
+		},
+	})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "persist source \"files\" datasets: tx fail") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if repo.withTxCalls != 1 {
+		t.Fatalf("expected one transaction call, got %d", repo.withTxCalls)
 	}
 }
 

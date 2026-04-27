@@ -41,10 +41,15 @@ func (h *ScannerSourceHandler) Handle(
 		return fmt.Errorf("source %q did not return any datasets", src.Name)
 	}
 
-	for _, scannedDataset := range result.Datasets {
-		if err := h.persistScannedDataset(ctx, repo, runSourceID, scannedDataset); err != nil {
-			return err
+	if err := repo.WithTx(ctx, func(txRepo appports.CatalogRepository) error {
+		for _, scannedDataset := range result.Datasets {
+			if err := h.persistScannedDataset(ctx, txRepo, runSourceID, scannedDataset); err != nil {
+				return err
+			}
 		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("persist source %q datasets: %w", src.Name, err)
 	}
 
 	return nil
