@@ -25,6 +25,15 @@ type RunCatalogUseCase struct {
 	sourceProcessor *SourceProcessor
 }
 
+type CompletedWithErrorsError struct {
+	RunID  int64
+	Errors []string
+}
+
+func (e *CompletedWithErrorsError) Error() string {
+	return fmt.Sprintf("run completed with errors: %s", strings.Join(e.Errors, "; "))
+}
+
 func NewRunCatalogUseCase(
 	logger ports.Logger,
 	sourceProcessor *SourceProcessor,
@@ -103,7 +112,10 @@ func (uc *RunCatalogUseCase) Execute(ctx context.Context, input ExecuteInput) (i
 	)
 
 	if len(processingErrors) > 0 {
-		return run.ID, fmt.Errorf("run completed with errors: %s", strings.Join(processingErrors, "; "))
+		return run.ID, &CompletedWithErrorsError{
+			RunID:  run.ID,
+			Errors: append([]string(nil), processingErrors...),
+		}
 	}
 
 	return run.ID, nil

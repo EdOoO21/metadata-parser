@@ -319,6 +319,13 @@ func TestRunCatalogUseCase_ExecuteReturnsPartialOnMixedSources(t *testing.T) {
 	if runID != 1 {
 		t.Fatalf("expected run id 1, got %d", runID)
 	}
+	var partialErr *CompletedWithErrorsError
+	if !errors.As(err, &partialErr) {
+		t.Fatalf("expected CompletedWithErrorsError, got %T: %v", err, err)
+	}
+	if partialErr.RunID != 1 {
+		t.Fatalf("expected partial error run id 1, got %d", partialErr.RunID)
+	}
 	if len(repo.runStatusCalls) != 1 || repo.runStatusCalls[0] != types.RunStatusPartial {
 		t.Fatalf("unexpected run statuses: %+v", repo.runStatusCalls)
 	}

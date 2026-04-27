@@ -57,7 +57,7 @@ type runUseCaseStub struct {
 
 func (u *runUseCaseStub) Execute(ctx context.Context, input runapp.ExecuteInput) (int64, error) {
 	if u.err != nil {
-		return 0, u.err
+		return u.runID, u.err
 	}
 	return u.runID, nil
 }
@@ -150,6 +150,35 @@ func TestNewRunCmd_Success(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if !strings.Contains(out.String(), "run completed successfully: run_id=42") {
+		t.Fatalf("unexpected output: %s", out.String())
+	}
+}
+
+func TestNewRunCmd_PartialPrintsRunIDAndReturnsError(t *testing.T) {
+	t.Parallel()
+
+	cmd := NewRunCmd(
+		&configLoaderStub{cfg: testConfig()},
+		&catalogOpenerStub{conn: &catalogConnStub{repo: &noopRepoStub{}}},
+		&runUseCaseStub{
+			runID: 42,
+			err: &runapp.CompletedWithErrorsError{
+				RunID:  42,
+				Errors: []string{"broken_source: boom"},
+			},
+		},
+	)
+
+	var out bytes.Buffer
+	cmd.SetOut(&out)
+	cmd.SetErr(&out)
+	cmd.SetArgs([]string{"--config", "demo.yaml"})
+
+	err := cmd.Execute()
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(out.String(), "run completed with errors: run_id=42") {
 		t.Fatalf("unexpected output: %s", out.String())
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	appports "github.com/EdOoO21/metadata-parser/internal/application/ports"
@@ -58,6 +59,10 @@ func NewRunCmd(
 				ConfigSnapshotJSON: configSnapshotJSON,
 			})
 			if err != nil {
+				var runErr *runapp.CompletedWithErrorsError
+				if errors.As(err, &runErr) {
+					fmt.Fprintf(cmd.OutOrStdout(), "run completed with errors: run_id=%d\n", runID)
+				}
 				return err
 			}
 
