@@ -22,7 +22,7 @@ func NewCSVProfiler() *CSVProfiler {
 	return &CSVProfiler{}
 }
 
-func (p *CSVProfiler) BuildDataset(path string, result *CSVParseResult, sampleLimit int) (contracts.ScannedDataset, error) {
+func (p *CSVProfiler) BuildDataset(path string, result *CSVParseResult, fullRowCount int64, sampleLimit int) (contracts.ScannedDataset, error) {
 	metadataJSON, err := json.Marshal(map[string]any{
 		"format":       "csv",
 		"headers":      append([]string(nil), result.Headers...),
@@ -39,7 +39,6 @@ func (p *CSVProfiler) BuildDataset(path string, result *CSVParseResult, sampleLi
 		datasetName = path
 	}
 
-	rowCount := int64(len(result.Rows))
 	columns, err := p.profileColumns(result.Headers, result.Rows)
 	if err != nil {
 		return contracts.ScannedDataset{}, err
@@ -51,7 +50,7 @@ func (p *CSVProfiler) BuildDataset(path string, result *CSVParseResult, sampleLi
 			DatasetKey:    path,
 			Name:          datasetName,
 			Location:      path,
-			RowCount:      &rowCount,
+			RowCount:      &fullRowCount,
 			DiscoveredAt:  time.Now().UTC(),
 			ProfileStatus: types.ProfileStatusProfiled,
 			MetadataJSON:  metadataJSON,

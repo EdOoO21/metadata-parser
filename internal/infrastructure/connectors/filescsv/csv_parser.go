@@ -72,12 +72,17 @@ func (p *CSVParser) ParseSource(ctx context.Context, src settings.SourceConfig) 
 	scannedDatasets := make([]contracts.ScannedDataset, 0, len(paths))
 	profiler := NewCSVProfiler()
 	for _, path := range paths {
-		result, err := p.ParseFile(ctx, path, DefaultCSVParseOptions())
+		rowCount, err := p.CountRows(ctx, path, opts)
+		if err != nil {
+			return nil, fmt.Errorf("count csv rows %q: %w", path, err)
+		}
+
+		result, err := p.ParseFile(ctx, path, opts)
 		if err != nil {
 			return nil, fmt.Errorf("parse csv file %q: %w", path, err)
 		}
 
-		dataset, err := profiler.BuildDataset(path, result, opts.MaxRows)
+		dataset, err := profiler.BuildDataset(path, result, rowCount, opts.MaxRows)
 		if err != nil {
 			return nil, fmt.Errorf("build scanned dataset %q: %w", path, err)
 		}
@@ -93,6 +98,24 @@ func (p *CSVParser) ParseSource(ctx context.Context, src settings.SourceConfig) 
 		EffectiveConfigJSON: effectiveConfigJSON,
 		Datasets:            scannedDatasets,
 	}, nil
+}
+
+func (p *CSVParser) CountRows(ctx context.Context, path string, opts CSVParseOptions) (int64, error) {
+	resolvedPath, err := resolveLocalPath(path)
+	if err != nil {
+		return 0, err
+	}
+
+	file, err := os.Open(resolvedPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return 0, fmt.Errorf("file not found: %s", path)
+		}
+		return 0, fmt.Errorf("open local file: %w", err)
+	}
+	defer file.Close()
+
+	return p.Count(ctx, file, opts)
 }
 
 func (p *CSVParser) ParseFile(ctx context.Context, path string, opts CSVParseOptions) (*CSVParseResult, error) {
@@ -111,6 +134,42 @@ func (p *CSVParser) ParseFile(ctx context.Context, path string, opts CSVParseOpt
 	defer file.Close()
 
 	return p.Parse(ctx, file, opts)
+}
+
+func (p *CSVParser) Count(ctx context.Context, r io.Reader, opts CSVParseOptions) (int64, error) {
+	opts = normalizeCSVParseOptions(opts)
+
+	reader := csv.NewReader(bufio.NewReader(r))
+	reader.Comma = opts.Delimiter
+	reader.FieldsPerRecord = -1
+	reader.TrimLeadingSpace = opts.TrimWhiteSpace
+	reader.ReuseRecord = false
+
+	recordCounter := 0
+	rowCount := int64(0)
+
+	if opts.HasHeaderRecord {
+		_, _, err := readNextDataRecord(ctx, reader, opts, &recordCounter)
+		if err != nil {
+			if err == io.EOF {
+				return 0, nil
+			}
+			return 0, err
+		}
+	}
+
+	for {
+		_, _, err := readNextDataRecord(ctx, reader, opts, &recordCounter)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return 0, err
+		}
+		rowCount++
+	}
+
+	return rowCount, nil
 }
 
 func (p *CSVParser) Parse(ctx context.Context, r io.Reader, opts CSVParseOptions) (*CSVParseResult, error) {

@@ -208,3 +208,44 @@ func TestCSVParser_ParseSource_ReturnsNoMatchingFiles(t *testing.T) {
 		t.Fatalf("expected ErrNoMatchingFiles, got %v", err)
 	}
 }
+
+func TestCSVParser_ParseSource_PreservesFullRowCountWhenSampling(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "events.csv")
+
+	var builder strings.Builder
+	builder.WriteString("id,name\n")
+	for i := 1; i <= 12; i++ {
+		builder.WriteString("1,Alice\n")
+	}
+
+	if err := os.WriteFile(path, []byte(builder.String()), 0o644); err != nil {
+		t.Fatalf("write temp file: %v", err)
+	}
+
+	parser := NewCSVParser()
+	result, err := parser.ParseSource(context.Background(), settings.SourceConfig{
+		Name: "events",
+		Kind: "files",
+		Config: settings.SourceConfigDetails{
+			Path: path,
+		},
+	})
+	if err != nil {
+		t.Fatalf("parse source returned error: %v", err)
+	}
+
+	if len(result.Datasets) != 1 {
+		t.Fatalf("expected one dataset, got %d", len(result.Datasets))
+	}
+
+	dataset := result.Datasets[0]
+	if dataset.Dataset.RowCount == nil || *dataset.Dataset.RowCount != 12 {
+		t.Fatalf("unexpected row count: %#v", dataset.Dataset.RowCount)
+	}
+	if dataset.Columns[1].Stat == nil || dataset.Columns[1].Stat.NonNullCount != 10 {
+		t.Fatalf("unexpected sampled non-null count: %#v", dataset.Columns[1].Stat)
+	}
+}

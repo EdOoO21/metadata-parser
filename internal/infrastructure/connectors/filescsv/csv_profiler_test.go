@@ -26,7 +26,7 @@ func TestCSVProfiler_BuildDataset_ProfiledPassport(t *testing.T) {
 		},
 	}
 
-	dataset, err := profiler.BuildDataset("/tmp/orders.csv", result, 10)
+	dataset, err := profiler.BuildDataset("/tmp/orders.csv", result, 3, 10)
 	if err != nil {
 		t.Fatalf("BuildDataset returned error: %v", err)
 	}
@@ -94,7 +94,7 @@ func TestCSVProfiler_AllNullColumnFallsBackToString(t *testing.T) {
 		},
 	}
 
-	dataset, err := profiler.BuildDataset("/tmp/notes.csv", result, 10)
+	dataset, err := profiler.BuildDataset("/tmp/notes.csv", result, 2, 10)
 	if err != nil {
 		t.Fatalf("BuildDataset returned error: %v", err)
 	}
@@ -124,7 +124,7 @@ func TestCSVProfiler_PhoneLikeValuesStayString(t *testing.T) {
 		},
 	}
 
-	dataset, err := profiler.BuildDataset("/tmp/phones.csv", result, 10)
+	dataset, err := profiler.BuildDataset("/tmp/phones.csv", result, 3, 10)
 	if err != nil {
 		t.Fatalf("BuildDataset returned error: %v", err)
 	}
