@@ -61,6 +61,9 @@ func validateConfig(cfg *AppConfig) error {
 			if src.Config.DSNEnv == "" {
 				return fmt.Errorf("поле sources[%d].config.dsn_env обязательно для postgres", i)
 			}
+			if src.Config.Mode != "" && src.Config.Mode != "full" && src.Config.Mode != "sampled" && src.Config.Mode != "schema_only" {
+				return fmt.Errorf("поле sources[%d].config.mode для postgres должно быть full, sampled или schema_only", i)
+			}
 		case "files":
 			if src.Config.Path == "" {
 				return fmt.Errorf("поле sources[%d].config.path обязательно для files", i)

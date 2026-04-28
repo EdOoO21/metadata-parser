@@ -18,6 +18,7 @@ type SourceConfig struct {
 
 type SourceConfigDetails struct {
 	DSNEnv    string           `yaml:"dsn_env,omitempty"`
+	Mode      string           `yaml:"mode,omitempty"`
 	Path      string           `yaml:"path,omitempty"`
 	MaxDepth  int              `yaml:"max_depth,omitempty"`
 	BaseURL   string           `yaml:"base_url,omitempty"`

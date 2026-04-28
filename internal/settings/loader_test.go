@@ -105,3 +105,33 @@ func TestValidateConfig_MissingCatalogAndUnsupportedKind(t *testing.T) {
 		t.Fatal("expected unsupported kind error")
 	}
 }
+
+func TestValidateConfig_PostgresMode(t *testing.T) {
+	t.Parallel()
+
+	cfg := &AppConfig{
+		Version: 1,
+		Catalog: CatalogConfig{DSNEnv: "CATALOG_DSN"},
+		Sources: []SourceConfig{{
+			Name: "pg",
+			Kind: "postgres",
+			Config: SourceConfigDetails{
+				DSNEnv: "DEMO_PG_DSN",
+				Mode:   "sampled",
+			},
+		}},
+	}
+	if err := validateConfig(cfg); err != nil {
+		t.Fatalf("expected sampled mode to be valid, got error: %v", err)
+	}
+
+	cfg.Sources[0].Config.Mode = "schema_only"
+	if err := validateConfig(cfg); err != nil {
+		t.Fatalf("expected schema_only mode to be valid, got error: %v", err)
+	}
+
+	cfg.Sources[0].Config.Mode = "fast"
+	if err := validateConfig(cfg); err == nil {
+		t.Fatal("expected invalid postgres mode error")
+	}
+}

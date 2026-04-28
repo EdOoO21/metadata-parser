@@ -13,6 +13,15 @@ import (
 )
 
 const defaultPostgresTopValuesLimit = 5
+const defaultPostgresSampleRows = 1000
+
+type postgresProfilingMode string
+
+const (
+	postgresProfilingModeFull    postgresProfilingMode = "full"
+	postgresProfilingModeSampled postgresProfilingMode = "sampled"
+	postgresProfilingModeSchema  postgresProfilingMode = "schema_only"
+)
 
 type queryRower interface {
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
@@ -27,24 +36,31 @@ type profileDB interface {
 	queryer
 }
 
-func profileDataset(ctx context.Context, pool *pgxpool.Pool, dataset *contracts.ScannedDataset) error {
-	return profileDatasetWithDB(ctx, pool, dataset)
+func profileDataset(ctx context.Context, pool *pgxpool.Pool, dataset *contracts.ScannedDataset, mode string) error {
+	return profileDatasetWithDB(ctx, pool, dataset, mode)
 }
 
-func profileDatasetWithDB(ctx context.Context, db profileDB, dataset *contracts.ScannedDataset) error {
+func profileDatasetWithDB(ctx context.Context, db profileDB, dataset *contracts.ScannedDataset, mode string) error {
 	schemaName, datasetName, err := parseDatasetLocation(dataset.Dataset.Location)
 	if err != nil {
 		return err
 	}
 
-	rowCount, err := queryRowCount(ctx, db, schemaName, datasetName)
-	if err != nil {
-		return err
+	qualifiedName := qualifyName(schemaName, datasetName)
+	sourceSQL := qualifiedName
+	if normalizePostgresProfilingMode(mode) == postgresProfilingModeFull {
+		rowCount, err := queryRowCount(ctx, db, schemaName, datasetName)
+		if err != nil {
+			return err
+		}
+		dataset.Dataset.RowCount = &rowCount
+	} else {
+		dataset.Dataset.RowCount = nil
+		sourceSQL = sampledSourceSQL(qualifiedName)
 	}
-	dataset.Dataset.RowCount = &rowCount
 
 	for i := range dataset.Columns {
-		stat, topValues, err := profileColumn(ctx, db, schemaName, datasetName, dataset.Columns[i].Column)
+		stat, topValues, err := profileColumn(ctx, db, sourceSQL, dataset.Columns[i].Column)
 		if err != nil {
 			return fmt.Errorf("profile column %q: %w", dataset.Columns[i].Column.Name, err)
 		}
@@ -59,11 +75,9 @@ func profileDatasetWithDB(ctx context.Context, db profileDB, dataset *contracts.
 func profileColumn(
 	ctx context.Context,
 	db profileDB,
-	schemaName string,
-	datasetName string,
+	sourceSQL string,
 	column model.Column,
 ) (*model.ColumnStat, []model.ColumnTopValue, error) {
-	qualifiedName := qualifyName(schemaName, datasetName)
 	columnName := quoteIdent(column.Name)
 
 	statsQuery := fmt.Sprintf(
@@ -71,7 +85,7 @@ func profileColumn(
 		columnName,
 		columnName,
 		columnName,
-		qualifiedName,
+		sourceSQL,
 	)
 
 	stat := &model.ColumnStat{}
@@ -80,7 +94,7 @@ func profileColumn(
 	}
 
 	if column.NormalizedType == types.CanonicalTypeNumber || column.NormalizedType == types.CanonicalTypeTimestamp {
-		minValueJSON, maxValueJSON, err := queryMinMax(ctx, db, qualifiedName, columnName)
+		minValueJSON, maxValueJSON, err := queryMinMax(ctx, db, sourceSQL, columnName)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -88,7 +102,7 @@ func profileColumn(
 		stat.MaxValueJSON = maxValueJSON
 	}
 
-	topValues, err := queryTopValues(ctx, db, qualifiedName, columnName)
+	topValues, err := queryTopValues(ctx, db, sourceSQL, columnName)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -167,6 +181,21 @@ LIMIT %[3]d`,
 	}
 
 	return topValues, nil
+}
+
+func normalizePostgresProfilingMode(value string) postgresProfilingMode {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case string(postgresProfilingModeSampled):
+		return postgresProfilingModeSampled
+	case string(postgresProfilingModeSchema):
+		return postgresProfilingModeSchema
+	default:
+		return postgresProfilingModeFull
+	}
+}
+
+func sampledSourceSQL(qualifiedName string) string {
+	return fmt.Sprintf(`(SELECT * FROM %s LIMIT %d) AS sampled_rows`, qualifiedName, defaultPostgresSampleRows)
 }
 
 func parseDatasetLocation(location string) (string, string, error) {

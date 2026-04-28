@@ -3,6 +3,7 @@ package postgressrc
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/EdOoO21/metadata-parser/internal/application/contracts"
@@ -193,7 +194,7 @@ func TestProfileColumnAndDatasetWithDB(t *testing.T) {
 		},
 	}
 
-	stat, topValues, err := profileColumn(context.Background(), db, "public", "people", model.Column{
+	stat, topValues, err := profileColumn(context.Background(), db, `"public"."people"`, model.Column{
 		Name:           "age",
 		NormalizedType: types.CanonicalTypeNumber,
 	})
@@ -213,7 +214,7 @@ func TestProfileColumnAndDatasetWithDB(t *testing.T) {
 			{Column: model.Column{Name: "age", NormalizedType: types.CanonicalTypeNumber}},
 		},
 	}
-	if err := profileDatasetWithDB(context.Background(), db, dataset); err != nil {
+	if err := profileDatasetWithDB(context.Background(), db, dataset, "full"); err != nil {
 		t.Fatalf("unexpected profileDatasetWithDB error: %v", err)
 	}
 	if dataset.Dataset.RowCount == nil || *dataset.Dataset.RowCount != 2 {
@@ -244,7 +245,7 @@ func TestProfileDatasetWithDB_InvalidLocationAndColumnError(t *testing.T) {
 
 	if err := profileDatasetWithDB(context.Background(), db, &contracts.ScannedDataset{
 		Dataset: model.Dataset{Location: "broken"},
-	}); err == nil {
+	}, "full"); err == nil {
 		t.Fatal("expected invalid location error")
 	}
 
@@ -253,8 +254,83 @@ func TestProfileDatasetWithDB_InvalidLocationAndColumnError(t *testing.T) {
 		Columns: []contracts.ScannedColumn{
 			{Column: model.Column{Name: "age", NormalizedType: types.CanonicalTypeNumber}},
 		},
-	})
+	}, "full")
 	if err == nil {
 		t.Fatal("expected profile column error")
+	}
+}
+
+func TestProfileDatasetWithDB_SampledMode(t *testing.T) {
+	t.Parallel()
+
+	sampledSource := `(SELECT * FROM "public"."people" LIMIT 1000) AS sampled_rows`
+
+	db := &fakeProfileDB{
+		queryRowFn: func(ctx context.Context, sql string, args ...any) pgx.Row {
+			switch sql {
+			case fmt.Sprintf(`SELECT COUNT("name"), COUNT(*) - COUNT("name"), COUNT(DISTINCT "name") FROM %s`, sampledSource):
+				return fakeProfileRow{scanFn: func(dest ...any) error {
+					*(dest[0].(*int64)) = 2
+					*(dest[1].(*int64)) = 1
+					*(dest[2].(*int64)) = 2
+					return nil
+				}}
+			default:
+				return fakeProfileRow{scanFn: func(dest ...any) error {
+					return errors.New("unexpected query: " + sql)
+				}}
+			}
+		},
+		queryFn: func(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+			want := fmt.Sprintf(`SELECT to_jsonb(%[1]s)::text, COUNT(*)
+FROM %[2]s
+WHERE %[1]s IS NOT NULL
+GROUP BY %[1]s
+ORDER BY COUNT(*) DESC, to_jsonb(%[1]s)::text ASC
+LIMIT %[3]d`, `"name"`, sampledSource, defaultPostgresTopValuesLimit)
+			if sql != want {
+				return nil, errors.New("unexpected top values query: " + sql)
+			}
+			return &fakeProfileRows{
+				rows: [][]any{
+					{`"Alice"`, int64(1)},
+					{`"Bob"`, int64(1)},
+				},
+			}, nil
+		},
+	}
+
+	dataset := &contracts.ScannedDataset{
+		Dataset: model.Dataset{Location: "public.people"},
+		Columns: []contracts.ScannedColumn{
+			{Column: model.Column{Name: "name", NormalizedType: types.CanonicalTypeString}},
+		},
+	}
+
+	if err := profileDatasetWithDB(context.Background(), db, dataset, "sampled"); err != nil {
+		t.Fatalf("unexpected sampled profile error: %v", err)
+	}
+	if dataset.Dataset.RowCount != nil {
+		t.Fatalf("expected sampled profile to leave row count unknown, got %+v", dataset.Dataset.RowCount)
+	}
+	if dataset.Columns[0].Stat == nil || dataset.Columns[0].Stat.NonNullCount != 2 || dataset.Columns[0].Stat.NullCount != 1 {
+		t.Fatalf("unexpected sampled stat: %+v", dataset.Columns[0].Stat)
+	}
+	if len(dataset.Columns[0].TopValues) != 2 {
+		t.Fatalf("unexpected sampled top values: %+v", dataset.Columns[0].TopValues)
+	}
+}
+
+func TestNormalizePostgresProfilingMode(t *testing.T) {
+	t.Parallel()
+
+	if got := normalizePostgresProfilingMode(""); got != postgresProfilingModeFull {
+		t.Fatalf("expected empty mode to default to full, got %s", got)
+	}
+	if got := normalizePostgresProfilingMode("sampled"); got != postgresProfilingModeSampled {
+		t.Fatalf("expected sampled mode, got %s", got)
+	}
+	if got := normalizePostgresProfilingMode("schema_only"); got != postgresProfilingModeSchema {
+		t.Fatalf("expected schema_only mode, got %s", got)
 	}
 }

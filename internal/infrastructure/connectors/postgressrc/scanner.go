@@ -81,9 +81,11 @@ func (s *Scanner) ParseSource(ctx context.Context, src settings.SourceConfig) (*
 		return nil, err
 	}
 
-	for i := range scannedDatasets {
-		profileErr := profileDataset(ctx, pool, &scannedDatasets[i])
-		applyProfileStatus(&scannedDatasets[i], profileErr)
+	if normalizePostgresProfilingMode(src.Config.Mode) != postgresProfilingModeSchema {
+		for i := range scannedDatasets {
+			profileErr := profileDataset(ctx, pool, &scannedDatasets[i], src.Config.Mode)
+			applyProfileStatus(&scannedDatasets[i], profileErr)
+		}
 	}
 
 	return &contracts.SourceScanResult{
