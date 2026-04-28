@@ -403,6 +403,7 @@ bash ./scripts/verify_testcases.sh diff_files diff_postgres diff_api diff_mixed
 - для полностью провальных кейсов: что `datasets` не появились
 - наличие `columns`, `column_stats`, `column_top_values` там, где они должны быть
 - корректные `dataset.kind`, `profile_status`, `normalized_type`
+- для потенциально чувствительных колонок сохраняется агрегированная статистика, но не сохраняются реальные `top values`
 - отсутствие зависших `running`
 - согласованность статистики:
   - `non_null_count + null_count = row_count`

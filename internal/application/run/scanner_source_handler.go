@@ -6,6 +6,7 @@ import (
 
 	"github.com/EdOoO21/metadata-parser/internal/application/contracts"
 	appports "github.com/EdOoO21/metadata-parser/internal/application/ports"
+	"github.com/EdOoO21/metadata-parser/internal/application/sensitive"
 	"github.com/EdOoO21/metadata-parser/internal/domain/model"
 	"github.com/EdOoO21/metadata-parser/internal/ports"
 	"github.com/EdOoO21/metadata-parser/internal/settings"
@@ -87,7 +88,8 @@ func (h *ScannerSourceHandler) persistScannedDataset(
 				return fmt.Errorf("create stat for column %q: %w", columnToCreate.Name, err)
 			}
 
-			if len(scannedColumn.TopValues) > 0 {
+			_, isSensitive := sensitive.MatchField(columnToCreate.Name, derefString(columnToCreate.Comment))
+			if len(scannedColumn.TopValues) > 0 && !isSensitive {
 				topValues := make([]model.ColumnTopValue, 0, len(scannedColumn.TopValues))
 				for _, topValue := range scannedColumn.TopValues {
 					topValue.ColumnStatID = stat.ID
@@ -111,4 +113,11 @@ func (h *ScannerSourceHandler) persistScannedDataset(
 	}
 
 	return nil
+}
+
+func derefString(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
 }

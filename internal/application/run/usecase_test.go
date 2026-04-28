@@ -211,12 +211,12 @@ func TestScannerSourceHandler_HandlePersistsDatasetsColumnsStatsAndTopValues(t *
 					Columns: []contracts.ScannedColumn{
 						{
 							Column: model.Column{
-								Name:            "full_name",
+								Name:            "city",
 								OrdinalPosition: 1,
 							},
 							Stat: stat,
 							TopValues: []model.ColumnTopValue{
-								{Rank: 1, ValueJSON: []byte(`"Ivan Ivanov"`), OccurrenceCount: 1},
+								{Rank: 1, ValueJSON: []byte(`"Moscow"`), OccurrenceCount: 1},
 							},
 						},
 					},
@@ -244,6 +244,53 @@ func TestScannerSourceHandler_HandlePersistsDatasetsColumnsStatsAndTopValues(t *
 	}
 	if repo.withTxCalls != 1 {
 		t.Fatalf("expected one transaction, got %d", repo.withTxCalls)
+	}
+}
+
+func TestScannerSourceHandler_HandleSkipsTopValuesForSensitiveColumns(t *testing.T) {
+	t.Parallel()
+
+	repo := &catalogRepoStub{}
+	handler := NewScannerSourceHandler(&loggerStub{})
+	stat := &model.ColumnStat{NonNullCount: 2, DistinctCount: 2}
+
+	scanner := &sourceScannerStub{
+		result: &contracts.SourceScanResult{
+			Datasets: []contracts.ScannedDataset{
+				{
+					Dataset: model.Dataset{
+						Name:          "people.csv",
+						DatasetKey:    "people.csv",
+						Location:      "/tmp/people.csv",
+						ProfileStatus: types.ProfileStatusProfiled,
+					},
+					Columns: []contracts.ScannedColumn{
+						{
+							Column: model.Column{
+								Name:            "email",
+								OrdinalPosition: 1,
+							},
+							Stat: stat,
+							TopValues: []model.ColumnTopValue{
+								{Rank: 1, ValueJSON: []byte(`"alice@example.com"`), OccurrenceCount: 1},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	err := handler.Handle(context.Background(), repo, 77, settings.SourceConfig{Name: "files_demo"}, scanner)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(repo.createdStats) != 1 {
+		t.Fatalf("expected stat to be stored, got %+v", repo.createdStats)
+	}
+	if len(repo.createdTopValues) != 0 {
+		t.Fatalf("expected sensitive top values to be skipped, got %+v", repo.createdTopValues)
 	}
 }
 
