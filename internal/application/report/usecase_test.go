@@ -94,6 +94,7 @@ func TestReportCatalogUseCase_RendersMarkdownHTMLAndCSV(t *testing.T) {
 				DatasetLocation:      "/tmp/people.csv",
 				DatasetRowCount:      &rowCount,
 				DatasetProfileStatus: types.ProfileStatusProfiled,
+				ColumnPresent:        true,
 				ColumnName:           "id",
 				ColumnOriginalType:   "integer",
 				ColumnNormalizedType: types.CanonicalTypeNumber,
@@ -109,6 +110,7 @@ func TestReportCatalogUseCase_RendersMarkdownHTMLAndCSV(t *testing.T) {
 				DatasetLocation:      "/tmp/people.csv",
 				DatasetRowCount:      &rowCount,
 				DatasetProfileStatus: types.ProfileStatusProfiled,
+				ColumnPresent:        true,
 				ColumnName:           "full_name",
 				ColumnOriginalType:   "string",
 				ColumnNormalizedType: types.CanonicalTypeString,
@@ -170,6 +172,52 @@ func TestReportCatalogUseCase_RendersMarkdownHTMLAndCSV(t *testing.T) {
 	}
 }
 
+func TestReportCatalogUseCase_RendersEndpointMetadataWithoutColumns(t *testing.T) {
+	t.Parallel()
+
+	repo := &reportRepoStub{
+		run: &model.Run{
+			ID:        55,
+			StartedAt: time.Date(2026, 3, 26, 10, 0, 0, 0, time.UTC),
+			Status:    types.RunStatusSuccess,
+		},
+		rows: []appports.ReportRow{
+			{
+				SourceName:           "demo_api",
+				SourceKind:           types.SourceKindREST,
+				DatasetName:          "DELETE /users/{id}",
+				DatasetKind:          types.DatasetKindEndpoint,
+				DatasetKey:           "DELETE:/users/{id}",
+				DatasetLocation:      "http://localhost:8089/users/{id}",
+				DatasetProfileStatus: types.ProfileStatusDiscoveredOnly,
+				DatasetMetadataJSON:  []byte(`{"method":"DELETE","path":"/users/{id}","operationId":"deleteUser","parameters":[{"name":"id","in":"path","required":true}],"responses":{"204":{"description":"Deleted"}}}`),
+			},
+		},
+	}
+
+	uc := NewReportCatalogUseCase()
+	got, err := uc.Execute(context.Background(), ExecuteInput{
+		Repository: repo,
+		RunID:      55,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !strings.Contains(got.Markdown, "- Endpoint: `DELETE /users/{id}`") {
+		t.Fatalf("markdown does not contain endpoint metadata: %s", got.Markdown)
+	}
+	if !strings.Contains(got.Markdown, "_Columns were not discovered for this dataset._") {
+		t.Fatalf("markdown does not describe missing columns: %s", got.Markdown)
+	}
+	if !strings.Contains(got.HTML, "DELETE /users/{id}") {
+		t.Fatalf("html does not contain endpoint metadata: %s", got.HTML)
+	}
+	if !strings.Contains(string(got.CSV), "DELETE /users/{id}") {
+		t.Fatalf("csv does not contain endpoint metadata: %s", string(got.CSV))
+	}
+}
+
 func TestReportCatalogUseCase_EmptyRunRendersMessage(t *testing.T) {
 	t.Parallel()
 
@@ -200,7 +248,7 @@ func TestReportCatalogUseCase_EmptyRunRendersMessage(t *testing.T) {
 	if len(got.SensitiveFields) != 0 {
 		t.Fatalf("expected no sensitive fields, got %d", len(got.SensitiveFields))
 	}
-	if string(got.CSV) != "source_name,source_kind,dataset_name,dataset_kind,dataset_key,dataset_location,dataset_comment,dataset_row_count,dataset_profile_status,column_ordinal,column_name,column_original_type,column_normalized_type,column_is_nullable,column_comment\n" {
+	if string(got.CSV) != "source_name,source_kind,dataset_name,dataset_kind,dataset_key,dataset_location,dataset_comment,dataset_row_count,dataset_profile_status,dataset_metadata_json,column_ordinal,column_name,column_original_type,column_normalized_type,column_is_nullable,column_comment\n" {
 		t.Fatalf("unexpected csv output: %q", string(got.CSV))
 	}
 }

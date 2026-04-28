@@ -1,0 +1,13 @@
+version: 1
+
+catalog:
+  dsn_env: CATALOG_DSN
+
+sources:
+  - name: api_case_11_all_methods
+    kind: rest
+    config:
+      base_url: http://localhost:8089
+      discovery:
+        mode: openapi
+        openapi_url: http://localhost:8089/openapi.json

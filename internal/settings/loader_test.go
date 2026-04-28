@@ -135,3 +135,32 @@ func TestValidateConfig_PostgresMode(t *testing.T) {
 		t.Fatal("expected invalid postgres mode error")
 	}
 }
+
+func TestValidateConfig_RestMaxResponseBytes(t *testing.T) {
+	t.Parallel()
+
+	cfg := &AppConfig{
+		Version: 1,
+		Catalog: CatalogConfig{DSNEnv: "CATALOG_DSN"},
+		Sources: []SourceConfig{{
+			Name: "api",
+			Kind: "rest",
+			Config: SourceConfigDetails{
+				BaseURL:          "http://localhost:8080",
+				MaxResponseBytes: 1024,
+				Discovery: &DiscoveryConfig{
+					Mode:       "openapi",
+					OpenAPIURL: "http://localhost:8080/openapi.json",
+				},
+			},
+		}},
+	}
+	if err := validateConfig(cfg); err != nil {
+		t.Fatalf("expected positive max_response_bytes to be valid, got error: %v", err)
+	}
+
+	cfg.Sources[0].Config.MaxResponseBytes = -1
+	if err := validateConfig(cfg); err == nil {
+		t.Fatal("expected negative max_response_bytes validation error")
+	}
+}

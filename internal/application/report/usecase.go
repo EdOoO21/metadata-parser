@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"html"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -92,11 +94,13 @@ func renderHTML(run *model.Run, rows []appports.ReportRow, sensitiveFields []Sen
 
 	currentSource := ""
 	currentDataset := ""
+	tableOpen := false
 
 	for _, row := range rows {
 		if row.SourceName != currentSource {
-			if currentDataset != "" {
+			if tableOpen {
 				b.WriteString("</tbody>\n</table>\n")
+				tableOpen = false
 				currentDataset = ""
 			}
 			currentSource = row.SourceName
@@ -105,8 +109,9 @@ func renderHTML(run *model.Run, rows []appports.ReportRow, sensitiveFields []Sen
 
 		datasetKey := row.SourceName + "::" + row.DatasetKey
 		if datasetKey != currentDataset {
-			if currentDataset != "" {
+			if tableOpen {
 				b.WriteString("</tbody>\n</table>\n")
+				tableOpen = false
 			}
 			currentDataset = datasetKey
 
@@ -120,8 +125,20 @@ func renderHTML(run *model.Run, rows []appports.ReportRow, sensitiveFields []Sen
 			if row.DatasetComment != nil && strings.TrimSpace(*row.DatasetComment) != "" {
 				fmt.Fprintf(&b, "<li>Comment: %s</li>\n", html.EscapeString(*row.DatasetComment))
 			}
+			writeEndpointMetadataHTML(&b, row)
 			b.WriteString("</ul>\n")
+			if !row.ColumnPresent {
+				b.WriteString("<p>Columns were not discovered for this dataset.</p>\n")
+			}
+		}
+
+		if !row.ColumnPresent {
+			continue
+		}
+
+		if !tableOpen {
 			b.WriteString("<table>\n<thead><tr><th>#</th><th>Column</th><th>Original Type</th><th>Normalized Type</th><th>Nullable</th><th>Comment</th></tr></thead>\n<tbody>\n")
+			tableOpen = true
 		}
 
 		fmt.Fprintf(
@@ -136,7 +153,7 @@ func renderHTML(run *model.Run, rows []appports.ReportRow, sensitiveFields []Sen
 		)
 	}
 
-	if currentDataset != "" {
+	if tableOpen {
 		b.WriteString("</tbody>\n</table>\n")
 	}
 
@@ -189,9 +206,18 @@ func renderMarkdown(run *model.Run, rows []appports.ReportRow, sensitiveFields [
 			if row.DatasetComment != nil && strings.TrimSpace(*row.DatasetComment) != "" {
 				b.WriteString(fmt.Sprintf("- Comment: %s\n", *row.DatasetComment))
 			}
+			b.WriteString(renderEndpointMetadataMarkdown(row))
 			b.WriteString("\n")
-			b.WriteString("| # | Column | Original Type | Normalized Type | Nullable | Comment |\n")
-			b.WriteString("|---|---|---|---|---|---|\n")
+			if row.ColumnPresent {
+				b.WriteString("| # | Column | Original Type | Normalized Type | Nullable | Comment |\n")
+				b.WriteString("|---|---|---|---|---|---|\n")
+			} else {
+				b.WriteString("_Columns were not discovered for this dataset._\n\n")
+			}
+		}
+
+		if !row.ColumnPresent {
+			continue
 		}
 
 		b.WriteString(fmt.Sprintf(
@@ -252,6 +278,114 @@ func writeSensitiveFieldsMarkdown(b *strings.Builder, sensitiveFields []Sensitiv
 	b.WriteString("\n")
 }
 
+type endpointReportMetadata struct {
+	Method      string                     `json:"method"`
+	Path        string                     `json:"path"`
+	OperationID string                     `json:"operationId"`
+	Tags        []string                   `json:"tags"`
+	Parameters  []endpointReportParameter  `json:"parameters"`
+	RequestBody json.RawMessage            `json:"requestBody"`
+	Responses   map[string]json.RawMessage `json:"responses"`
+}
+
+type endpointReportParameter struct {
+	Name     string `json:"name"`
+	In       string `json:"in"`
+	Required bool   `json:"required"`
+}
+
+func parseEndpointMetadata(row appports.ReportRow) (endpointReportMetadata, bool) {
+	if row.DatasetKind != "endpoint" || len(row.DatasetMetadataJSON) == 0 {
+		return endpointReportMetadata{}, false
+	}
+
+	var metadata endpointReportMetadata
+	if err := json.Unmarshal(row.DatasetMetadataJSON, &metadata); err != nil {
+		return endpointReportMetadata{}, false
+	}
+
+	if strings.TrimSpace(metadata.Method) == "" && strings.TrimSpace(metadata.Path) == "" {
+		return endpointReportMetadata{}, false
+	}
+
+	return metadata, true
+}
+
+func renderEndpointMetadataMarkdown(row appports.ReportRow) string {
+	metadata, ok := parseEndpointMetadata(row)
+	if !ok {
+		return ""
+	}
+
+	var b strings.Builder
+	if metadata.Method != "" && metadata.Path != "" {
+		b.WriteString(fmt.Sprintf("- Endpoint: `%s %s`\n", metadata.Method, metadata.Path))
+	}
+	if metadata.OperationID != "" {
+		b.WriteString(fmt.Sprintf("- Operation ID: `%s`\n", metadata.OperationID))
+	}
+	if len(metadata.Tags) > 0 {
+		b.WriteString(fmt.Sprintf("- Tags: `%s`\n", strings.Join(metadata.Tags, "`, `")))
+	}
+	if len(metadata.Parameters) > 0 {
+		b.WriteString(fmt.Sprintf("- Parameters: %s\n", formatEndpointParameters(metadata.Parameters)))
+	}
+	if len(metadata.RequestBody) > 0 && string(metadata.RequestBody) != "null" {
+		b.WriteString("- Request body: `yes`\n")
+	}
+	if len(metadata.Responses) > 0 {
+		b.WriteString(fmt.Sprintf("- Responses: `%s`\n", strings.Join(sortedMapKeys(metadata.Responses), "`, `")))
+	}
+	return b.String()
+}
+
+func writeEndpointMetadataHTML(b *strings.Builder, row appports.ReportRow) {
+	metadata, ok := parseEndpointMetadata(row)
+	if !ok {
+		return
+	}
+
+	if metadata.Method != "" && metadata.Path != "" {
+		fmt.Fprintf(b, "<li>Endpoint: <code>%s %s</code></li>\n", html.EscapeString(metadata.Method), html.EscapeString(metadata.Path))
+	}
+	if metadata.OperationID != "" {
+		fmt.Fprintf(b, "<li>Operation ID: <code>%s</code></li>\n", html.EscapeString(metadata.OperationID))
+	}
+	if len(metadata.Tags) > 0 {
+		fmt.Fprintf(b, "<li>Tags: <code>%s</code></li>\n", html.EscapeString(strings.Join(metadata.Tags, ", ")))
+	}
+	if len(metadata.Parameters) > 0 {
+		fmt.Fprintf(b, "<li>Parameters: %s</li>\n", html.EscapeString(formatEndpointParameters(metadata.Parameters)))
+	}
+	if len(metadata.RequestBody) > 0 && string(metadata.RequestBody) != "null" {
+		b.WriteString("<li>Request body: <code>yes</code></li>\n")
+	}
+	if len(metadata.Responses) > 0 {
+		fmt.Fprintf(b, "<li>Responses: <code>%s</code></li>\n", html.EscapeString(strings.Join(sortedMapKeys(metadata.Responses), ", ")))
+	}
+}
+
+func formatEndpointParameters(parameters []endpointReportParameter) string {
+	values := make([]string, 0, len(parameters))
+	for _, parameter := range parameters {
+		required := "optional"
+		if parameter.Required {
+			required = "required"
+		}
+		values = append(values, fmt.Sprintf("%s %s (%s)", parameter.In, parameter.Name, required))
+	}
+	return strings.Join(values, ", ")
+}
+
+func sortedMapKeys[V any](values map[string]V) []string {
+	keys := make([]string, 0, len(values))
+	for key := range values {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
 func renderCSV(rows []appports.ReportRow) []byte {
 	buffer := &bytes.Buffer{}
 	writer := csv.NewWriter(buffer)
@@ -266,6 +400,7 @@ func renderCSV(rows []appports.ReportRow) []byte {
 		"dataset_comment",
 		"dataset_row_count",
 		"dataset_profile_status",
+		"dataset_metadata_json",
 		"column_ordinal",
 		"column_name",
 		"column_original_type",
@@ -285,6 +420,7 @@ func renderCSV(rows []appports.ReportRow) []byte {
 			derefString(row.DatasetComment),
 			formatInt64Ptr(row.DatasetRowCount),
 			string(row.DatasetProfileStatus),
+			string(row.DatasetMetadataJSON),
 			strconv.Itoa(row.ColumnOrdinal),
 			row.ColumnName,
 			row.ColumnOriginalType,

@@ -17,7 +17,7 @@ import (
 
 const defaultRESTTopValuesLimit = 5
 
-func (s *Scanner) profileEndpoint(ctx context.Context, url string, dataset *contracts.ScannedDataset) error {
+func (s *Scanner) profileEndpoint(ctx context.Context, url string, dataset *contracts.ScannedDataset, maxResponseBytes int64) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return fmt.Errorf("build endpoint request: %w", err)
@@ -34,7 +34,7 @@ func (s *Scanner) profileEndpoint(ctx context.Context, url string, dataset *cont
 	}
 
 	var payload any
-	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+	if err := decodeLimitedJSON(resp.Body, maxResponseBytes, &payload); err != nil {
 		return fmt.Errorf("decode endpoint response: %w", err)
 	}
 

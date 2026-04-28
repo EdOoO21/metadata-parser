@@ -220,7 +220,7 @@ verify_case() {
   columns_count="$(sql 'select count(*) from columns')"
   stats_count="$(sql 'select count(*) from column_stats')"
   top_values_count="$(sql 'select count(*) from column_top_values')"
-  dataset_without_columns="$(sql "with per_dataset as (select d.id, count(c.id) as cnt from datasets d left join columns c on c.dataset_id = d.id group by d.id) select count(*) from per_dataset where cnt = 0")"
+  dataset_without_columns="$(sql "with per_dataset as (select d.id, d.kind, d.profile_status, count(c.id) as cnt from datasets d left join columns c on c.dataset_id = d.id group by d.id, d.kind, d.profile_status) select count(*) from per_dataset where cnt = 0 and not (kind = 'endpoint' and profile_status = 'discovered_only')")"
   success_sources_without_datasets="$(sql "with per_source as (select rs.id, rs.status, count(d.id) as cnt from run_sources rs left join datasets d on d.run_source_id = rs.id group by rs.id, rs.status) select count(*) from per_source where status = 'success' and cnt = 0")"
   invalid_dataset_kinds="$(sql "select count(*) from datasets where kind not in ('table', 'view', 'file', 'endpoint')")"
   invalid_profile_statuses="$(sql "select count(*) from datasets where profile_status not in ('profiled', 'discovered_only', 'skipped_requires_params', 'failed')")"

@@ -100,12 +100,14 @@ func buildDatasetSnapshots(rows []appports.ReportRow) map[string]datasetSnapshot
 			}
 		}
 
-		snapshot.columns[row.ColumnName] = columnSnapshot{
-			name:           row.ColumnName,
-			originalType:   row.ColumnOriginalType,
-			normalizedType: string(row.ColumnNormalizedType),
-			isNullable:     row.ColumnIsNullable,
-			comment:        derefString(row.ColumnComment),
+		if row.ColumnPresent {
+			snapshot.columns[row.ColumnName] = columnSnapshot{
+				name:           row.ColumnName,
+				originalType:   row.ColumnOriginalType,
+				normalizedType: string(row.ColumnNormalizedType),
+				isNullable:     row.ColumnIsNullable,
+				comment:        derefString(row.ColumnComment),
+			}
 		}
 
 		result[datasetKey] = snapshot

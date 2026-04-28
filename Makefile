@@ -158,17 +158,17 @@ metadata:
 		wait_pg_case "source_case_$$case_id"; \
 	elif [ "$$category" = "api" ]; then \
 		trap '$(API_DEMO_COMPOSE) down -v' EXIT INT TERM; \
-		$(API_DEMO_COMPOSE) up -d demo_api_1 demo_api_2 demo_api_3 demo_api_4 demo_api_5 demo_api_6 demo_api_7 demo_api_8; \
-		for port in 8081 8082 8083 8084 8085 8086 8087 8088; do \
+		$(API_DEMO_COMPOSE) up -d demo_api_1 demo_api_2 demo_api_3 demo_api_4 demo_api_5 demo_api_6 demo_api_7 demo_api_8 demo_api_9; \
+		for port in 8081 8082 8083 8084 8085 8086 8087 8088 8089; do \
 			wait_api_port "$$port" || exit 1; \
 		done; \
 	elif [ "$$category" = "mixed" ] || [ "$$category" = "diff_mixed" ]; then \
 		trap '$(PG_DEMO_COMPOSE) down -v; $(API_DEMO_COMPOSE) down -v' EXIT INT TERM; \
 		$(PG_DEMO_COMPOSE) up -d source_pg; \
-		$(API_DEMO_COMPOSE) up -d demo_api_1 demo_api_2 demo_api_3 demo_api_4 demo_api_5 demo_api_6 demo_api_7 demo_api_8; \
+		$(API_DEMO_COMPOSE) up -d demo_api_1 demo_api_2 demo_api_3 demo_api_4 demo_api_5 demo_api_6 demo_api_7 demo_api_8 demo_api_9; \
 		export DEMO_PG_DSN="postgres://$$CATALOG_DB_USER:$$CATALOG_DB_PASSWORD@localhost:55433/source_case_$$case_id?sslmode=disable"; \
 		wait_pg_case "source_case_$$case_id"; \
-		for port in 8081 8082 8083 8084 8085 8086 8087 8088; do \
+		for port in 8081 8082 8083 8084 8085 8086 8087 8088 8089; do \
 			wait_api_port "$$port" || exit 1; \
 		done; \
 	fi; \
@@ -286,7 +286,7 @@ app-down-v:
 demo-up:
 	@if [ ! -f ./.env ]; then echo ".env not found. Add it to the project root before running demo-up"; exit 1; fi
 	$(PG_DEMO_COMPOSE) up -d source_pg
-	$(API_DEMO_COMPOSE) up -d demo_api_1 demo_api_2 demo_api_3 demo_api_4 demo_api_5 demo_api_6 demo_api_7 demo_api_8
+	$(API_DEMO_COMPOSE) up -d demo_api_1 demo_api_2 demo_api_3 demo_api_4 demo_api_5 demo_api_6 demo_api_7 demo_api_8 demo_api_9
 
 demo-down-v:
 	$(PG_DEMO_COMPOSE) down -v

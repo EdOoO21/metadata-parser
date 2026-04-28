@@ -18,6 +18,8 @@ type ReportRow struct {
 	DatasetComment       *string
 	DatasetRowCount      *int64
 	DatasetProfileStatus types.ProfileStatus
+	DatasetMetadataJSON  []byte
+	ColumnPresent        bool
 	ColumnName           string
 	ColumnOriginalType   string
 	ColumnNormalizedType types.CanonicalType

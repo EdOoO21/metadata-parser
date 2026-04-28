@@ -239,6 +239,7 @@ sources:
     kind: rest
     config:
       base_url: http://localhost:8081
+      max_response_bytes: 10485760
       discovery:
         mode: openapi
         openapi_url: http://localhost:8081/openapi.json
@@ -247,6 +248,9 @@ sources:
 Поля:
 - `config.base_url`
   - базовый URL API, например `http://localhost:8081`
+- `config.max_response_bytes`
+  - максимальный размер OpenAPI JSON и live `GET`-ответа для профилирования
+  - если не указано, используется `10485760` байт
 - `config.discovery.mode`
   - способ получения схемы API
   - сейчас поддерживается только `openapi`
@@ -255,6 +259,8 @@ sources:
 
 Важно:
 - текущий REST-коннектор работает только через OpenAPI JSON / Swagger spec
+- metadata endpoint-ов сохраняются для всех HTTP-методов из OpenAPI
+- live profiling выполняется только для простых `GET` endpoint-ов без path-параметров
 - API должен публиковать такую спецификацию сам
 - если у API есть только HTML-документация, Postman collection или вообще нет формальной схемы, этот коннектор сейчас не подойдет
 
@@ -290,6 +296,7 @@ sources:
 ```bash
 make metadata CATEGORY=files CASE=2
 make metadata CATEGORY=postgres CASE=1
+make metadata CATEGORY=api CASE=11
 make metadata CATEGORY=mixed CASE=1
 make metadata-diff CATEGORY=files CASE=1
 make metadata-diff CATEGORY=postgres CASE=1
@@ -402,6 +409,7 @@ bash ./scripts/verify_testcases.sh diff_files diff_postgres diff_api diff_mixed
 - для успешных кейсов: что `datasets` сохранились и их количество не равно `0`
 - для полностью провальных кейсов: что `datasets` не появились
 - наличие `columns`, `column_stats`, `column_top_values` там, где они должны быть
+- REST endpoint без response schema может сохраняться как dataset без columns
 - корректные `dataset.kind`, `profile_status`, `normalized_type`
 - для потенциально чувствительных колонок сохраняется агрегированная статистика, но не сохраняются реальные `top values`
 - отсутствие зависших `running`

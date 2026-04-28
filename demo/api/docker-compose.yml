@@ -94,3 +94,15 @@ services:
       - "8088:8080"
     volumes:
       - ./:/srv/api:ro
+
+  demo_api_9:
+    image: public.ecr.aws/docker/library/python:3.12-alpine
+    working_dir: /srv/api
+    environment:
+      DEMO_API_SLOT: "9"
+      DEMO_API_MODE: ${DEMO_API_MODE:-}
+    command: ["python", "server.py"]
+    ports:
+      - "8089:8080"
+    volumes:
+      - ./:/srv/api:ro

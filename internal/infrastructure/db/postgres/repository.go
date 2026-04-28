@@ -393,18 +393,20 @@ SELECT
     d.comment,
     d.row_count,
     d.profile_status,
-    c.name,
-    c.original_type,
-    c.normalized_type,
-    c.is_nullable,
+    d.metadata_json,
+    c.id IS NOT NULL AS column_present,
+    COALESCE(c.name, '') AS column_name,
+    COALESCE(c.original_type, '') AS column_original_type,
+    COALESCE(c.normalized_type, '') AS column_normalized_type,
+    COALESCE(c.is_nullable, false) AS column_is_nullable,
     c.comment,
-    c.ordinal_position
+    COALESCE(c.ordinal_position, 0) AS column_ordinal_position
 FROM run_sources rs
 JOIN sources s ON s.id = rs.source_id
 JOIN datasets d ON d.run_source_id = rs.id
-JOIN columns c ON c.dataset_id = d.id
+LEFT JOIN columns c ON c.dataset_id = d.id
 WHERE rs.run_id = $1
-ORDER BY s.name, d.name, c.ordinal_position, c.name
+ORDER BY s.name, d.name, c.ordinal_position NULLS LAST, c.name
 `
 
 	rows, err := r.db.Query(ctx, query, runID)
@@ -434,6 +436,8 @@ ORDER BY s.name, d.name, c.ordinal_position, c.name
 			&datasetComment,
 			&datasetRowCount,
 			&profileStatus,
+			&item.DatasetMetadataJSON,
+			&item.ColumnPresent,
 			&item.ColumnName,
 			&item.ColumnOriginalType,
 			&normalizedType,

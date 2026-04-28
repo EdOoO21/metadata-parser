@@ -75,6 +75,9 @@ func validateConfig(cfg *AppConfig) error {
 			if src.Config.BaseURL == "" {
 				return fmt.Errorf("поле sources[%d].config.base_url обязательно для rest", i)
 			}
+			if src.Config.MaxResponseBytes < 0 {
+				return fmt.Errorf("поле sources[%d].config.max_response_bytes не может быть отрицательным", i)
+			}
 			if src.Config.Discovery == nil {
 				return fmt.Errorf("поле sources[%d].config.discovery обязательно для rest", i)
 			}

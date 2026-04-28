@@ -10,7 +10,7 @@ DIFF_MODES = {"baseline", "changed"}
 
 
 def load_case(slot_id: str):
-    normalized_slot = slot_id if slot_id in {"1", "2", "3", "4", "5", "6", "7", "8"} else DEFAULT_SLOT
+    normalized_slot = slot_id if slot_id in {"1", "2", "3", "4", "5", "6", "7", "8", "9"} else DEFAULT_SLOT
     mode = os.environ.get("DEMO_API_MODE", "").strip()
 
     if mode in DIFF_MODES:

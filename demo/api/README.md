@@ -13,6 +13,7 @@
   - `demo_api_6` -> `localhost:8086` -> `test_6`
   - `demo_api_7` -> `localhost:8087` -> `test_7`
   - `demo_api_8` -> `localhost:8088` -> `test_8`
+  - `demo_api_9` -> `localhost:8089` -> `test_9`
 - [`testcases/api`](../../testcases/api) комбинирует эти слоты в разных наборах
 - [`testcases/mixed`](../../testcases/mixed) и [`testcases/diff_mixed`](../../testcases/diff_mixed) используют выбранные API-слоты повторно
 - [`testcases/diff_api`](../../testcases/diff_api) прогоняет baseline/changed по одному фиксированному слоту
@@ -26,3 +27,4 @@
 - `6` — 10 ручек со смешанными бизнес-данными
 - `7` — catalog и warehouse ручки с path-параметрами `sku` и `id`
 - `8` — customer и support ручки с вложенными path-параметрами
+- `9` — OpenAPI с разными HTTP-методами: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS, TRACE

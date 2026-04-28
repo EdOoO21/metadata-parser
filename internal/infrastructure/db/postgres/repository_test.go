@@ -679,6 +679,8 @@ func TestRepositoryListReportRowsSuccess(t *testing.T) {
 						"People dataset",
 						rowCount,
 						"profiled",
+						[]byte(`{"format":"csv"}`),
+						true,
 						"full_name",
 						"string",
 						"STRING",
@@ -703,6 +705,9 @@ func TestRepositoryListReportRowsSuccess(t *testing.T) {
 	}
 	if rows[0].DatasetRowCount == nil || *rows[0].DatasetRowCount != rowCount {
 		t.Fatalf("unexpected row count: %+v", rows[0].DatasetRowCount)
+	}
+	if !rows[0].ColumnPresent || string(rows[0].DatasetMetadataJSON) != `{"format":"csv"}` {
+		t.Fatalf("unexpected report metadata: %+v", rows[0])
 	}
 }
 

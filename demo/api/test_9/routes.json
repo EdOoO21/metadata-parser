@@ -1,0 +1,22 @@
+{
+  "/items": [
+    {
+      "id": 1,
+      "name": "Keyboard",
+      "active": true,
+      "created_at": "2026-04-01T10:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "Mouse",
+      "active": true,
+      "created_at": "2026-04-02T10:00:00Z"
+    },
+    {
+      "id": 3,
+      "name": "Monitor",
+      "active": false,
+      "created_at": "2026-04-03T10:00:00Z"
+    }
+  ]
+}
