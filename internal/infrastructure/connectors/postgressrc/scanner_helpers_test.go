@@ -9,6 +9,12 @@ import (
 func TestMapDatasetKind(t *testing.T) {
 	t.Parallel()
 
+	if got := mapDatasetKind("v"); got != types.DatasetKindView {
+		t.Fatalf("expected view for relkind v, got %s", got)
+	}
+	if got := mapDatasetKind("r"); got != types.DatasetKindTable {
+		t.Fatalf("expected table for relkind r, got %s", got)
+	}
 	if got := mapDatasetKind("VIEW"); got != types.DatasetKindView {
 		t.Fatalf("expected view, got %s", got)
 	}

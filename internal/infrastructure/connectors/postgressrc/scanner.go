@@ -160,8 +160,10 @@ func applyProfileStatus(dataset *contracts.ScannedDataset, err error) {
 
 func mapDatasetKind(value string) types.DatasetKind {
 	switch value {
-	case "VIEW":
+	case "v", "VIEW":
 		return types.DatasetKindView
+	case "r", "BASE TABLE":
+		return types.DatasetKindTable
 	default:
 		return types.DatasetKindTable
 	}
